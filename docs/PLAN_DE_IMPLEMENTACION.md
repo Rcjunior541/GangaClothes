@@ -42,7 +42,7 @@ El desarrollo se organiza en **3 presentaciones progresivas y equitativas**, don
 
 ### Reparto Equitativo de Tareas (Hito 1)
 
-| Área / Tarea | Integrante 1 (Ariany) | Integrante 2 (Compañera) |
+| Área / Tarea | Integrante 1 (Junior) | Integrante 2 (Compañero) |
 |---|---|---|
 | **Backend & Base de Datos** | • Esquema de base de datos multitenant (`tenant`, `suscripcion`, `plan`, `usuario`).<br>• Middleware/Listener SQLAlchemy con filtro automático `WHERE tenant_id = scope.tenant_id`.<br>• Endpoints CU-01 al CU-07 (auth, suscripciones, sucursales con validación de límite).<br>• Endpoint de descarga de catálogo optimizado para persistencia local (CU-11). | • Apoyo en pruebas de endpoints y verificación de contratos OpenAPI (`/docs`). |
 | **Frontend PWA (Angular)** | • Configuración de interceptores HTTP para inyectar token y `tenant_id`. | • Pantalla de Login con código de tenant (CU-02).<br>• Módulo de administración de suscripción y límites (CU-07).<br>• Configuración del Service Worker inicial y Web App Manifest.<br>• Servicio de IndexedDB para almacenar catálogo localmente (CU-11). |
@@ -69,7 +69,7 @@ El desarrollo se organiza en **3 presentaciones progresivas y equitativas**, don
 
 ### Reparto Equitativo de Tareas (Hito 2)
 
-| Área / Tarea | Integrante 1 (Ariany) | Integrante 2 (Compañera) |
+| Área / Tarea | Integrante 1 (Junior) | Integrante 2 (Compañero) |
 |---|---|---|
 | **Backend & Base de Datos** | • Endpoint de sincronización por lotes (`POST /api/sincronizacion/lote`).<br>• Mecanismo de idempotencia con `UNIQUE(tenant_id, uuid_operacion)`.<br>• Lógica de detección de conflictos: verificación de stock central al conciliar ventas offline.<br>• Módulo de cambios de prendas (CU-18) con validación de ventana temporal (ej. 30 días) y kardex.<br>• Adaptación de delivery (CU-09 y CU-10) al contexto multitenant. | • Soporte en validación de payloads JSON de sincronización. |
 | **Frontend PWA (Angular)** | • Revisión de consistencia transaccional del backend. | • Modo offline en PWA: detección de estado de red (`navigator.onLine`).<br>• Catálogo offline consultando IndexedDB con badge de datos desactualizados (CU-12).<br>• Registro local de venta en efectivo y reserva con generación de UUID (CU-13, CU-14).<br>• Bandeja de "Operaciones Pendientes de Sincronización" (CU-15).<br>• Disparador de sincronización automática al volver online (CU-16).<br>• Pantalla de cambios de prendas (CU-18). |
@@ -91,7 +91,7 @@ El desarrollo se organiza en **3 presentaciones progresivas y equitativas**, don
 
 ### Reparto Equitativo de Tareas (Hito 3)
 
-| Área / Tarea | Integrante 1 (Ariany) | Integrante 2 (Compañera) |
+| Área / Tarea | Integrante 1 (Junior) | Integrante 2 (Compañero) |
 |---|---|---|
 | **Backend & Machine Learning** | • Servicio de generación y preprocesamiento de datos sintéticos (Req. 8.4).<br>• Modelo Supervisado: Regresión/RandomForest para predicción de demanda de ventas por sucursal.<br>• Modelo No Supervisado: Clustering K-Means para segmentación de clientes / detección de anomalías.<br>• Script de cálculo de métricas ($R^2$, RMSE, Silhouette).<br>• Endpoint de Reportes Generativos (CU-19): orquestación con Gemini API para traducir lenguaje natural a filtros estructurados de BD restringidos por `tenant_id` y condicionados a Plan Pro.<br>• Exportación de reportes generativos dinámicos a Excel (`openpyxl`) y PDF (`reportlab`). | • Colaboración en diseño de gráficos y estructura visual de los reportes. |
 | **Frontend PWA (Angular)** | • API de analítica para alimentar dashboard. | • Interfaz de Reportes Generativos: entrada de texto y captura de audio/voz (`Web Speech API`).<br>• Renderizado dinámico de tablas y gráficos según la respuesta de la IA (CU-19).<br>• Botones de exportación a Excel y PDF.<br>• Dashboard Analítico de Machine Learning (CU-21): visualización interactiva de predicciones de demanda y clusters con gráficos SVG. |
