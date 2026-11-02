@@ -125,7 +125,7 @@ h1 {
   background: var(--ganga);
 }
 .tiempo li.actual .punto {
-  box-shadow: 0 0 0 4px rgba(232, 23, 93, 0.18);
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.22);
 }
 
 .tiempo div {

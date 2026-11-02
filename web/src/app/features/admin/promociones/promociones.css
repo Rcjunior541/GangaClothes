@@ -192,7 +192,7 @@ h1 {
   background: var(--suave);
 }
 .opcion.on {
-  background: #fce3ec;
+  background: var(--ganga-suave, #ecfdf5);
 }
 .opcion input {
   accent-color: var(--ganga);

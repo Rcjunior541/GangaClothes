@@ -172,7 +172,7 @@ export interface FiltrosReporte {
 export type NombreReporte = 'ventas' | 'inventario' | 'margen';
 
 /** Colores de serie de los graficos (validados para daltonismo; siempre van con su etiqueta escrita). */
-export const COLOR_CANAL: Record<string, string> = { caja: '#e8175d', web: '#2a78d6', movil: '#c98500' };
+export const COLOR_CANAL: Record<string, string> = { caja: '#059669', web: '#0284c7', movil: '#d97706' };
 export const ETIQUETA_CANAL: Record<string, string> = { caja: 'Caja', web: 'Web', movil: 'App movil' };
 
 @Injectable({ providedIn: 'root' })

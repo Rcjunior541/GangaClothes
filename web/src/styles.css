@@ -1,15 +1,24 @@
-/* Sistema visual de GangaClothes — tomado de docs/mockup_web_gangaclothes.html */
+/* Sistema visual renovado — Esmeralda / Luxe Boutique */
 :root {
-  --papel: #f2f2ed;
-  --tinta: #14161a;
-  --ganga: #e8175d;
-  --ok: #1f7a5c;
-  --alerta: #c93400;
-  --linea: #d9d9d2;
-  --gris: #6b6f76;
-  --suave: #fbfbf8;
-  --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
-  --sans: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --papel: #f8fafc;
+  --tinta: #0f172a;
+  --ganga: #059669;
+  --ganga-hover: #047857;
+  --ganga-suave: #ecfdf5;
+  --ganga-borde: #a7f3d0;
+  --ok: #059669;
+  --alerta: #e11d48;
+  --linea: #e2e8f0;
+  --linea-fuerte: #cbd5e1;
+  --gris: #64748b;
+  --gris-claro: #94a3b8;
+  --suave: #ffffff;
+  --suave-hover: #f1f5f9;
+  --sombra-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --sombra-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --sombra-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+  --sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 * {
@@ -38,18 +47,20 @@ a {
 
 /* ---------- tipografia de apoyo ---------- */
 .logo {
-  font-weight: 900;
-  letter-spacing: -0.03em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   text-transform: uppercase;
 }
 .logo b {
   color: var(--ganga);
+  font-weight: 900;
 }
 
 .ceja {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--gris);
 }
@@ -67,29 +78,50 @@ a {
   gap: 7px;
   background: var(--tinta);
   color: #fff;
-  border: 1.5px solid var(--tinta);
-  border-radius: 10px;
-  padding: 9px 16px;
+  border: 1px solid var(--tinta);
+  border-radius: 8px;
+  padding: 8px 16px;
   font-family: inherit;
   font-size: 12.5px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  transition: filter 0.15s ease, opacity 0.15s ease;
+  box-shadow: var(--sombra-sm);
+  transition: all 0.18s ease;
 }
 .btn:hover:not(:disabled) {
-  filter: brightness(1.25);
+  filter: none;
+  background: #1e293b;
+  border-color: #1e293b;
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-md);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  box-shadow: none;
 }
 .btn.rosa {
   background: var(--ganga);
   border-color: var(--ganga);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+}
+.btn.rosa:hover:not(:disabled) {
+  background: var(--ganga-hover);
+  border-color: var(--ganga-hover);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
 }
 .btn.linea {
   background: #fff;
   color: var(--tinta);
+  border: 1px solid var(--linea);
+}
+.btn.linea:hover:not(:disabled) {
+  background: var(--papel);
+  border-color: var(--linea-fuerte);
 }
 .btn.bloque {
   width: 100%;
@@ -99,32 +131,36 @@ a {
 .campo {
   display: block;
   width: 100%;
-  border: 1.5px solid var(--linea);
-  border-radius: 10px;
-  padding: 10px 12px;
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  padding: 9px 12px;
   font-family: inherit;
   font-size: 13px;
   color: var(--tinta);
-  background: var(--suave);
-  transition: border-color 0.15s ease;
+  background: #fff;
+  box-shadow: var(--sombra-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .campo::placeholder {
-  color: var(--gris);
+  color: var(--gris-claro);
 }
 .campo:focus {
   outline: none;
-  border-color: var(--tinta);
+  border-color: var(--ganga);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
   background: #fff;
 }
 .campo.invalido {
   border-color: var(--alerta);
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
 }
 
 .etiqueta {
   display: block;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--gris);
   margin-bottom: 5px;
@@ -138,41 +174,54 @@ a {
 
 /* ---------- estados y chips ---------- */
 .estado {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 10px;
-  border-radius: 99px;
-  padding: 3px 9px;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--sans);
+  font-size: 11px;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 .estado.ok {
-  background: #e4f2ec;
-  color: var(--ok);
+  background: var(--ganga-suave);
+  color: var(--ganga);
+  border: 1px solid var(--ganga-borde);
 }
 .estado.bajo {
-  background: #fce9e2;
-  color: var(--alerta);
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
 }
 .estado.rosa {
-  background: #fce3ec;
+  background: var(--ganga-suave);
   color: var(--ganga);
+  border: 1px solid var(--ganga-borde);
 }
 
 .chip {
   display: inline-block;
-  border: 1.5px solid var(--linea);
-  border-radius: 99px;
-  padding: 4px 12px;
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  padding: 5px 12px;
   font-size: 11.5px;
+  font-weight: 500;
   margin: 0 6px 8px 0;
   color: var(--gris);
   background: #fff;
   cursor: pointer;
+  box-shadow: var(--sombra-sm);
+  transition: all 0.15s ease;
+}
+.chip:hover {
+  border-color: var(--ganga);
+  color: var(--ganga);
 }
 .chip.on {
-  border-color: var(--tinta);
-  background: var(--tinta);
+  border-color: var(--ganga);
+  background: var(--ganga);
   color: #fff;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
 }
 
 /* ---------- tablas ---------- */
@@ -183,17 +232,19 @@ table {
   background: #fff;
 }
 th {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--gris);
   text-align: left;
-  padding: 9px 10px;
-  border-bottom: 1.5px solid var(--tinta);
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--linea);
 }
 td {
-  padding: 9px 10px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--linea);
 }
 
@@ -211,16 +262,17 @@ td {
 
 /* ---------- piezas compartidas por las pantallas de administracion ---------- */
 .marco-tabla {
-  border: 1.5px solid var(--linea);
-  border-radius: 13px;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
   overflow: hidden;
   background: #fff;
+  box-shadow: var(--sombra-sm);
 }
 .marco-tabla tbody tr:last-child td {
   border-bottom: none;
 }
 .marco-tabla tbody tr:hover {
-  background: var(--suave);
+  background: var(--suave-hover);
 }
 tr.inactiva td:not(.col-acciones) {
   opacity: 0.45;
@@ -299,7 +351,8 @@ tr.inactiva td:not(.col-acciones) {
 .fondo {
   position: fixed;
   inset: 0;
-  background: rgba(20, 22, 26, 0.45);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
   display: grid;
   place-items: center;
   padding: 20px;
@@ -311,10 +364,10 @@ tr.inactiva td:not(.col-acciones) {
   max-height: 88vh;
   overflow-y: auto;
   background: #fff;
-  border: 2px solid var(--tinta);
-  border-radius: 16px;
-  padding: 22px 24px;
-  box-shadow: 0 14px 34px rgba(20, 22, 26, 0.3);
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+  padding: 24px 26px;
+  box-shadow: var(--sombra-lg), 0 20px 25px -5px rgb(0 0 0 / 0.1);
 }
 .modal.angosto {
   max-width: 420px;

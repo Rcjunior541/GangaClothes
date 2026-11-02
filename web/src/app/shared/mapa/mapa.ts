@@ -217,7 +217,7 @@ export class Mapa implements AfterViewInit {
           [origen.latitud, origen.longitud],
           [destino.latitud, destino.longitud],
         ],
-        { color: '#e8175d', weight: 3, opacity: 0.8, dashArray: '7 7' },
+        { color: '#059669', weight: 3, opacity: 0.85, dashArray: '7 7' },
       ).addTo(this.capa);
     }
 

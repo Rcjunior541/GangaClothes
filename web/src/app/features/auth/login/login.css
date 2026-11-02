@@ -11,10 +11,10 @@
   display: grid;
   grid-template-columns: 1.1fr 1fr;
   background: #fff;
-  border: 2px solid var(--tinta);
+  border: 1px solid var(--linea);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 14px 34px rgba(20, 22, 26, 0.13);
+  box-shadow: var(--sombra-lg), 0 20px 25px -5px rgb(0 0 0 / 0.08);
 }
 
 /* panel izquierdo */

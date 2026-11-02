@@ -35,9 +35,9 @@
   height: min(560px, calc(100vh - 140px));
   overflow: hidden;
   background: var(--papel);
-  border: 1.5px solid var(--tinta);
+  border: 1px solid var(--linea);
   border-radius: 14px;
-  box-shadow: 0 14px 44px rgb(0 0 0 / 26%);
+  box-shadow: var(--sombra-lg), 0 20px 25px -5px rgb(0 0 0 / 0.12);
 }
 
 .asistente header {

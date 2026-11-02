@@ -31,7 +31,7 @@ type Campo =
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, ReglasContrasena],
   templateUrl: './registro-tenant.html',
-  styleUrls: ['../login/login.css', './registro-tenant.css'],
+  styleUrl: './registro-tenant.css',
 })
 export class RegistroTenant {
   private fb = inject(FormBuilder);

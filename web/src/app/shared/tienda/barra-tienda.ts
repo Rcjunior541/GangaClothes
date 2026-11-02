@@ -42,36 +42,43 @@ import { SesionStore } from '../../core/sesion';
       align-items: center;
       gap: 18px;
       flex-wrap: wrap;
-      padding: 12px 26px;
+      padding: 14px 28px;
       background: #fff;
-      border-bottom: 1.5px solid var(--linea);
+      border-bottom: 1px solid var(--linea);
+      box-shadow: var(--sombra-sm);
     }
     .logo {
       font-size: 17px;
     }
     .secciones {
       display: flex;
-      gap: 16px;
+      gap: 20px;
     }
     .secciones a {
-      font-size: 12.5px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 500;
       color: var(--gris);
-      padding-bottom: 2px;
+      padding: 4px 0;
       border-bottom: 2px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .secciones a:hover {
+      color: var(--tinta);
     }
     .secciones a.on {
-      color: var(--tinta);
+      color: var(--ganga);
+      font-weight: 700;
       border-bottom-color: var(--ganga);
     }
     .yo {
       margin-left: auto;
-      font-family: var(--mono);
-      font-size: 10.5px;
-      background: var(--suave);
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--papel);
       border: 1px solid var(--linea);
-      border-radius: 99px;
-      padding: 5px 13px;
+      border-radius: 8px;
+      padding: 5px 12px;
       color: var(--gris);
     }
     .acceso {
