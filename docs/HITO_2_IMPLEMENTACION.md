@@ -341,3 +341,150 @@ Tomando como base los cimientos multitenant y la persistencia local inicial esta
 * **Qué y dónde editar:**
   * Backend: Crear `app/modules/ventas/cambios.py` con endpoint `POST /api/ventas/cambios`.
   * Frontend: `src/app/features/admin/caja/cambios-prenda/cambios-prenda.{ts,html}`.
+
+---
+
+# 3. Guía de Pruebas Paso a Paso con Credenciales (Defensa Hito 2)
+
+A continuación se detalla la matriz de credenciales pre-cargadas por el seeder (`python seed.py`) y el procedimiento exacto paso a paso para ejecutar y demostrar cada caso de uso del Hito 2 ante el tribunal evaluador.
+
+---
+
+### A. Tabla de Credenciales de Demostración
+
+| Rol / Actor | Código de Empresa | Correo Electrónico | Contraseña | Propósito en el Hito 2 |
+| :--- | :--- | :--- | :--- | :--- |
+| **Cajero** | `gangaclothes` | `cajero@gangaclothes.com` | `Cajero123!` | Probar venta offline en caja (**CU-14**) y bandeja local (**CU-15**). |
+| **Encargado** | `gangaclothes` | `encargado@gangaclothes.com` | `Encargado123!` | Probar despacho de delivery (**CU-10**) e inventario/sincronización (**CU-16**). |
+| **Administrador** | `gangaclothes` | `admin@gangaclothes.com` | `Admin123!` | Control gerencial, auditoría y resolución de conflictos (**CU-17**). |
+| **Cliente** | *(dejar vacío)* | `sofia@gangaclothes.com` | `Cliente#2026` | Cotizar delivery Haversine (**CU-09**), seguimiento en tiempo real (**CU-10**), compras y catálogo. |
+| **Superadmin** | *(dejar vacío)* | `superadmin@fashionstore.com` | `SuperAdmin123!` | Gestión global de empresas y planes SaaS. |
+
+> **Atajo rápido en Web:** En la pantalla de login (`http://localhost:4201/login`), en la parte inferior hay **chips de acceso rápido** (`cajero`, `encargado`, `admin (GangaClothes)`, `cliente`). Al hacer clic en cualquiera de ellos, se autocompletan el correo, la contraseña y el código de empresa automáticamente.
+
+---
+
+### B. Pasos para Probar Cada Caso de Uso
+
+---
+
+#### 1. Prueba de CU-11 y CU-12: Descarga y Consulta de Catálogo Offline (PWA IndexedDB)
+
+**Objetivo:** Demostrar que el catálogo, precios y stock se almacenan en la base de datos interna del navegador (**IndexedDB**) y que la web funciona en modo desconectado.
+
+1. **Paso 1 (Con conexión):** Abre el navegador e ingresa a `http://localhost:4201/catalogo`.
+2. **Paso 2 (Descarga automática o manual):**
+   * El sistema guarda automáticamente el catálogo en IndexedDB en segundo plano al cargar.
+   * Además, en la cabecera verás el botón **`📥 Guardar catálogo offline`**. Pulsa el botón: verás la notificación verde confirmando `✓ 14 prendas guardadas localmente en IndexedDB`.
+3. **Paso 3 (Simular corte de internet):**
+   * Presiona **F12** para abrir las Herramientas de Desarrollador del navegador.
+   * Ve a la pestaña **Network** (Red) y en el selector de velocidad que dice *"No throttling"* selecciona **Offline** (o desconecta el Wi-Fi de tu computadora).
+4. **Paso 4 (Verificación de Modo Offline - CU-12):**
+   * Recarga la página o filtra por categorías (ej. *Poleras*, *Pantalones*).
+   * Verás aparecer el banner ámbar superior:  
+     `📶 Modo Sin Conexión (Offline Activo) — Estás visualizando el catálogo y existencias guardadas localmente en este navegador (IndexedDB)`.
+   * El catálogo se renderiza fluidamente leyendo los datos desde IndexedDB sin realizar peticiones de red.
+5. **Paso 5 (Auditoría en navegador):** En F12 -> pestaña **Application** (Aplicación) -> menú izquierdo **Storage** -> **IndexedDB** -> `gangaclothes_offline` -> `catalogo_local`, se observan físicamente los registros guardados en disco.
+
+---
+
+#### 2. Prueba de CU-14: Registrar Venta de Contado Offline en Caja
+
+**Objetivo:** Demostrar la continuidad operativa del negocio: el cajero puede cobrar en efectivo aunque no haya luz ni internet, emitiendo comprobante provisional y descontando stock local.
+
+1. **Paso 1 (Acceso a Caja):** Inicia sesión como cajero (`cajero@gangaclothes.com` / `Cajero123!` con código `gangaclothes`) y dirígete a `http://localhost:4201/admin/caja`.
+2. **Paso 2 (Desconectar red):** En F12 -> pestaña **Network**, pon el estado en **Offline**.
+3. **Paso 3 (Detección de modo offline):**
+   * Aparece el banner: `📶 Modo Offline — Punto de Venta Local Activo`.
+   * En la sección **Método de pago**, los métodos electrónicos (Tarjeta y QR) se bloquean automáticamente, quedando exclusivamente activo **`Efectivo (Contado)`** con la nota informativa.
+4. **Paso 4 (Escanear y cobrar):**
+   * En el buscador escribe el nombre de una prenda precargada (ej. `Polera` o `Jean`) y agrégala a la venta.
+   * Ingresa el monto recibido en efectivo (ej. `200`) y observa el cálculo del cambio.
+   * Pulsa **`Cobrar en Caja`**.
+5. **Paso 5 (Comprobante Provisional con UUID):**
+   * El sistema procesa la venta localmente al instante sin fallar por red.
+   * Se genera un **UUID v4** único (`crypto.randomUUID()`) y se emite el comprobante de caja con formato `OFFLINE-XXXXXXXX`.
+   * Se muestra el aviso: `⚠️ Comprobante local provisional. Se consolidará en el servidor al sincronizar`.
+   * El stock local de esa prenda se decrementa inmediatamente en IndexedDB.
+   * El badge del banner se actualiza a: `1 pendientes de sincronizar`.
+
+---
+
+#### 3. Prueba de CU-15: Consultar Bandeja de Operaciones Pendientes
+
+**Objetivo:** Permitir al personal auditar qué ventas están retenidas en el dispositivo esperando ser enviadas al servidor central.
+
+1. **Paso 1:** En el menú lateral del panel, ve a **Operación -> Sincronización Offline** (`http://localhost:4201/admin/sincronizacion`).
+2. **Paso 2:** Observa las tarjetas de métricas:
+   * **Total en este dispositivo:** 1
+   * **Pendientes (LOCAL):** 1
+   * **Confirmadas en Servidor:** 0
+   * **En Conflicto:** 0
+3. **Paso 3:** En la tabla se visualiza la venta realizada con su **UUID completo**, la sucursal de origen, la fecha y hora exacta, el desglose de prendas, el total en Bs y el badge amarillo de estado **`LOCAL`**.
+
+---
+
+#### 4. Prueba de CU-16: Sincronizar Lote de Operaciones con el Servidor
+
+**Objetivo:** Demostrar la transmisión en bloque hacia la API central (`POST /api/sincronizacion/lote`), consolidando inventario, generando el número de comprobante oficial y aplicando idempotencia.
+
+1. **Paso 1 (Reconectar red):** En F12 -> pestaña **Network**, vuelve a colocar **No throttling** (con internet).
+2. **Paso 2 (Disparo de sincronización):**
+   * **Opción automática:** Al detectar el evento `window.ononline`, el servicio intenta sincronizar en segundo plano.
+   * **Opción manual (para demostración):** En la pantalla `/admin/sincronizacion`, pulsa el botón **`🔄 Sincronizar Ahora (CU-16)`**.
+3. **Paso 3 (Resultado en Servidor):**
+   * El backend procesa el lote, descuenta las unidades en la tabla central `inventario`, genera el asiento en `pago` con referencia `off:<uuid>` y le asigna el número oficial correlativo (ej. `B001-00004`).
+   * En la interfaz verás la notificación verde: `✓ Lote sincronizado: 1 venta(s) confirmadas en el servidor`.
+   * El estado en la tabla cambia a verde **`CONFIRMADA`** y se muestra el número de comprobante emitido por el servidor central.
+4. **Paso 4 (Demostración de Idempotencia por UUID):**
+   * Si vuelves a pulsar el botón de sincronización con la misma operación, el backend detecta el UUID existente, no duplica la venta ni vuelve a descontar stock, y retorna el comprobante existente confirmando éxito.
+
+---
+
+#### 5. Prueba de CU-17: Detección de Conflictos de Stock Central
+
+**Objetivo:** Demostrar la resiliencia del sistema cuando el stock central en el servidor es insuficiente para cubrir una venta realizada offline.
+
+1. **Mecanismo:** Si mientras un cajero estaba desconectado se vendieron en línea o en otra sucursal las últimas unidades de una prenda, al sincronizar el backend detecta:  
+   $$\text{stock\_central} < \text{cantidad\_vendida\_offline}$$
+2. **Comportamiento:**
+   * El backend **no genera stock negativo ficticio** ni aborta las demás ventas del lote.
+   * Marca esa transacción específica con estado **`EN_CONFLICTO`** e informa en el mensaje:  
+     *"Quiebre de stock central para SKU X: requeridas Y, disponibles en servidor Z"*.
+   * En la pantalla `/admin/sincronizacion` la fila se resalta en naranja con badge rojo de error, permitiendo al encargado auditar el desfase.
+
+---
+
+#### 6. Prueba de CU-09: Cotizar y Pedir Entrega a Domicilio con Fórmula de Haversine
+
+**Objetivo:** Demostrar el cálculo geodésico de distancias en línea recta mediante Haversine, tarifas por km y validación de cobertura de 25 km.
+
+1. **Paso 1:** Inicia sesión como cliente (`sofia@gangaclothes.com` / `Cliente#2026`).
+2. **Paso 2:** Entra al catálogo (`/catalogo`), abre una prenda y pulsa **"Agregar al carrito"**.
+3. **Paso 3:** Ve al carrito (`/carrito`) y en la modalidad de entrega selecciona **"Envío a domicilio"**.
+4. **Paso 4:** Se despliega el mapa interactivo (Leaflet) centrado en la sucursal de origen:
+   * Marca un punto de entrega haciendo clic en el mapa de Santa Cruz.
+   * El backend ejecuta la fórmula de Haversine y retorna la distancia exacta (ej. `4.25 km`), el costo base (Bs 12,00) + tarifa por km (Bs 3,50/km) y los minutos estimados de entrega.
+   * Si arrastras el punto a más de 25 km de la sucursal, el sistema bloquea el pedido informando: *"Dirección fuera de cobertura (máximo 25 km)"*.
+5. **Paso 5:** Confirma la compra pagando el pedido. La venta se registra con tipo de entrega `delivery`.
+
+---
+
+#### 7. Prueba de CU-10: Despachar y Realizar Seguimiento de Envíos en Tiempo Real
+
+**Objetivo:** Demostrar la máquina de estados del delivery: el encargado despacha el paquete y el cliente ve el avance paso a paso en su línea de tiempo.
+
+1. **Paso 1 (Vista del Cliente - Seguimiento):**
+   * Como cliente (`sofia@gangaclothes.com`), entra a **Mis pedidos** (`http://localhost:4201/mis-envios`).
+   * Verás el pedido pagado con estado `pendiente` y la línea de tiempo vertical con el primer paso marcado.
+2. **Paso 2 (Vista del Encargado - Despacho):**
+   * En otra pestaña o ventana de incógnito, inicia sesión como encargado (`encargado@gangaclothes.com` / `Encargado123!` con código `gangaclothes`).
+   * Entra a **Operación -> Envíos a domicilio** (`http://localhost:4201/admin/envios`).
+   * En la pestaña *"Por despachar"*, verás el pedido del cliente con el mapa mostrando la ruta origen-destino.
+   * Pulsa **`Asignar repartidor`** -> Ingresa el nombre (ej. `Pedro Chofer`) y confirma -> Estado pasa a **`asignado`**.
+   * Pulsa **`En camino`** -> Estado pasa a **`en_camino`**.
+   * Pulsa **`Entregar`** -> Estado pasa a **`entregado`**.
+3. **Paso 3 (Verificación reactiva del cliente):**
+   * Vuelve a la pantalla del cliente (`/mis-envios`): la pantalla se auto-refresca sola cada 15 segundos.
+   * Observa cómo la línea de tiempo se completó con la fecha y hora real de cada transición (*Solicitado -> Asignado -> En camino -> Entregado*).
+
