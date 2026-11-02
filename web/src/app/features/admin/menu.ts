@@ -109,6 +109,19 @@ export const MENU: GrupoMenu[] = [
 
 /** Deja solo los grupos e items que el rol (y, si el item lo pide, el permiso) del usuario puede ver. */
 export function menuParaRoles(roles: string[], permisos: string[] = []): GrupoMenu[] {
+  // El Superadministrador solo gestiona las empresas (tenants) y los planes de suscripción de la plataforma SaaS.
+  if (roles.includes('superadmin')) {
+    return [
+      {
+        titulo: 'Plataforma SaaS',
+        items: [
+          { etiqueta: 'Empresas', ruta: '/admin/empresas', roles: ['superadmin'], disponible: true },
+          { etiqueta: 'Planes', ruta: '/admin/planes', roles: ['superadmin'], disponible: true },
+        ],
+      },
+    ];
+  }
+
   return MENU.map((grupo) => ({
     ...grupo,
     items: grupo.items.filter(

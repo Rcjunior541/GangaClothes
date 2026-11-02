@@ -86,12 +86,24 @@ export const routes: Routes = [
   {
     path: 'admin',
     canActivate: [authGuard, rolGuard],
-    data: { roles: ['administrador', 'encargado', 'cajero'] },
+    data: { roles: ['superadmin', 'administrador', 'encargado', 'cajero'] },
     loadComponent: () => import('./features/admin/shell').then((m) => m.AdminShell),
     children: [
       {
         path: '',
         loadComponent: () => import('./features/admin/inicio/inicio').then((m) => m.AdminInicio),
+      },
+      {
+        path: 'empresas',
+        canActivate: [rolGuard],
+        data: { roles: ['superadmin'] },
+        loadComponent: () => import('./features/admin/empresas/empresas').then((m) => m.EmpresasComponent),
+      },
+      {
+        path: 'planes',
+        canActivate: [rolGuard],
+        data: { roles: ['superadmin'] },
+        loadComponent: () => import('./features/admin/planes/planes').then((m) => m.PlanesComponent),
       },
       {
         path: 'suscripcion',

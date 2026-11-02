@@ -28,7 +28,7 @@ export class SesionStore {
   readonly nombreEmpresa = computed(() => this._usuario()?.nombre_empresa ?? null);
   /** El rol de mayor jerarquia, para mostrarlo en la barra superior. */
   readonly rolPrincipal = computed<Rol | null>(() => {
-    const jerarquia: Rol[] = ['administrador', 'encargado', 'cajero', 'proveedor', 'cliente'];
+    const jerarquia: Rol[] = ['superadmin', 'administrador', 'encargado', 'cajero', 'proveedor', 'cliente'];
     return jerarquia.find((r) => this.roles().includes(r)) ?? null;
   });
 

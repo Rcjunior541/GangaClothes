@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 
 import { API_URL } from '../../../core/api';
@@ -17,6 +18,7 @@ interface Ficha {
 })
 export class AdminInicio {
   private http = inject(HttpClient);
+  private router = inject(Router);
   readonly sesion = inject(AuthService).sesion;
 
   readonly fichas = signal<Ficha[]>([]);
@@ -33,6 +35,11 @@ export class AdminInicio {
   ];
 
   constructor() {
+    if (this.sesion.tieneAlgunRol('superadmin')) {
+      this.router.navigateByUrl('/admin/empresas');
+      return;
+    }
+
     // `null` en un recurso significa "no se pudo leer" (permisos o API caida):
     // se muestra un guion en vez de romper todo el panel.
     forkJoin(

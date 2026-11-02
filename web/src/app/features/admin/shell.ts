@@ -15,9 +15,11 @@ export class AdminShell {
   readonly sesion = this.auth.sesion;
   readonly menu = computed(() => menuParaRoles(this.sesion.roles(), this.sesion.permisos()));
   /** El proveedor usa el mismo marco, pero no es personal de la tienda. */
-  readonly subtitulo = computed(() =>
-    this.sesion.rolPrincipal() === 'proveedor' ? 'portal de proveedores' : 'panel interno',
-  );
+  readonly subtitulo = computed(() => {
+    const rol = this.sesion.rolPrincipal();
+    if (rol === 'superadmin') return 'consola saas global';
+    return rol === 'proveedor' ? 'portal de proveedores' : 'panel interno';
+  });
 
   salir(): void {
     this.auth.salir();

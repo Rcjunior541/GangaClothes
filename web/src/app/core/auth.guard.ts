@@ -6,6 +6,7 @@ import { SesionStore } from './sesion';
 
 /** Ruta inicial segun el rol: el personal va al panel, el proveedor a su portal y el cliente al catalogo. */
 export function rutaInicial(roles: string[]): string {
+  if (roles.includes('superadmin')) return '/admin/empresas';
   const esPersonal = ['administrador', 'encargado', 'cajero'].some((r) => roles.includes(r));
   if (esPersonal) return '/admin';
   return roles.includes('proveedor') ? '/proveedor' : '/catalogo';
