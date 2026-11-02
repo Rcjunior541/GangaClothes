@@ -44,7 +44,11 @@ export class Login {
   });
 
   usar(cuenta: CuentaDemo): void {
-    this.formulario.setValue({ codigo_tenant: '', email: cuenta.email, password: cuenta.password });
+    this.formulario.setValue({
+      codigo_tenant: cuenta.codigo_tenant ?? '',
+      email: cuenta.email,
+      password: cuenta.password,
+    });
   }
 
   /** Lleva el correo ya escrito a la pantalla de recuperacion. */

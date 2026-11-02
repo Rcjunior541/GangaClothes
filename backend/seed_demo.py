@@ -305,7 +305,7 @@ def envios_demo(db, rnd, sucursales, clientes, prendas) -> int:
     return creados
 
 
-def cargar(db, get_or_create) -> dict:
+def cargar(db, get_or_create, tenant_id: int | None = None) -> dict:
     rnd = random.Random(2026)
     hoy = promociones.hoy_bolivia()
     admin = db.query(Usuario).filter(Usuario.email == "admin@gangaclothes.com").first()
@@ -317,18 +317,20 @@ def cargar(db, get_or_create) -> dict:
     cbba = get_or_create(Ciudad, nombre="Cochabamba", defaults={"departamento": "Cochabamba"})
     sucursales = {
         "Central": get_or_create(Sucursal, nombre="Sucursal Central", defaults={
-            "ciudad_id": scz.id, "direccion": "Av. Principal #123", "horario": "Lun-Sab 9:00-20:00"}),
+            "ciudad_id": scz.id, "direccion": "Av. Principal #123", "horario": "Lun-Sab 9:00-20:00",
+            "tenant_id": tenant_id}),
         "Norte": get_or_create(Sucursal, nombre="Sucursal Norte", defaults={
             "ciudad_id": scz.id, "direccion": "Av. Banzer, 4to anillo", "telefono": "3-3445566",
-            "horario": "Lun-Dom 10:00-21:00"}),
+            "horario": "Lun-Dom 10:00-21:00", "tenant_id": tenant_id}),
         "Cochabamba": get_or_create(Sucursal, nombre="Sucursal Cochabamba", defaults={
             "ciudad_id": cbba.id, "direccion": "Av. Ballivian (El Prado) #540", "telefono": "4-4251100",
-            "horario": "Lun-Sab 9:30-20:30"}),
+            "horario": "Lun-Sab 9:30-20:30", "tenant_id": tenant_id}),
     }
 
-    # Las sucursales del seed anterior no tenian punto en el mapa: sin el, la
-    # tienda no puede calcular la distancia y solo ofrece retiro en sucursal.
+    # Asegurar tenant_id y coordenadas
     for clave, sucursal in sucursales.items():
+        if tenant_id is not None and sucursal.tenant_id is None:
+            sucursal.tenant_id = tenant_id
         if sucursal.latitud is None or sucursal.longitud is None:
             sucursal.latitud, sucursal.longitud = COORDENADAS_SUCURSAL[clave]
 
