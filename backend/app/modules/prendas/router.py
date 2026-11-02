@@ -243,3 +243,35 @@ def recursos_ar(variante_id: int, db=Depends(get_db)):
     """Tambien vienen dentro de GET /catalogo (variantes[].recursos_ar); esta ruta
     sirve para abrir el probador directo desde una variante."""
     return service.recursos_ar_publicos(db, variante_id)
+
+
+@publico.get(
+    "/catalogo/descarga-offline",
+    summary="CU-11: Descargar dataset plano de catálogo para almacenamiento local (PWA IndexedDB / Móvil SQLite)",
+)
+def descarga_offline(sucursal_id: int | None = None, db=Depends(get_db)):
+    """Retorna el catálogo plano con existencias de la sucursal y promociones para operar sin conexión."""
+    from datetime import datetime, timezone
+    from app.models.catalogo import Categoria
+
+    sucursal_nombre = None
+    if sucursal_id:
+        s = db.get(Sucursal, sucursal_id)
+        if s:
+            sucursal_nombre = s.nombre
+
+    prendas = service.armar_catalogo(db, solo_publicadas=True, sucursal_id=sucursal_id)
+    categorias = [
+        {"id": c.id, "nombre": c.nombre}
+        for c in db.query(Categoria).filter(Categoria.activo == True).all()  # noqa: E712
+    ]
+
+    return {
+        "version": 1,
+        "fecha_sincronizacion": datetime.now(timezone.utc).isoformat(),
+        "sucursal_id": sucursal_id,
+        "sucursal_nombre": sucursal_nombre,
+        "total_prendas": len(prendas),
+        "prendas": prendas,
+        "categorias": categorias,
+    }

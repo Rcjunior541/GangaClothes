@@ -403,7 +403,12 @@ def quitar(db: Session, usuario: Usuario, envio_id: int) -> dict:
 # ==================================================================== consultas
 def _pagadas(consulta):
     """Un envio es un pedido de verdad recien cuando la compra esta pagada."""
-    return consulta.join(Venta, Venta.id == Envio.venta_id).filter(Venta.estado == "pagada")
+    return (
+        consulta
+        .join(Venta, Venta.id == Envio.venta_id)
+        .join(Sucursal, Sucursal.id == Venta.sucursal_id)
+        .filter(Venta.estado == "pagada")
+    )
 
 
 def mios(db: Session, usuario: Usuario) -> list[dict]:
