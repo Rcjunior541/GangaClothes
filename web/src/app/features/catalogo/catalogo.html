@@ -82,18 +82,47 @@
 
   <!-- ------------------------------------------------------------ resultados -->
   <main>
+    @if (!offline.online()) {
+      <div class="banner-offline">
+        <span class="icono-alerta">📶</span>
+        <div>
+          <b>Modo Sin Conexión (Offline Activo)</b>
+          <p>Estás visualizando el catálogo y existencias guardadas localmente en este navegador (IndexedDB).</p>
+        </div>
+      </div>
+    }
+
     <div class="cabecera">
-      <h1>Catalogo</h1>
-      @if (!cargando() && !error()) {
-        <span class="ceja">
-          {{ prendas().length }} {{ prendas().length === 1 ? 'prenda' : 'prendas' }}
-          @if (nombreSucursal()) {
-            · con stock en {{ nombreSucursal() }}
-          } @else {
-            · en todas las sucursales
-          }
-        </span>
-      }
+      <div class="titulo-con-meta">
+        <h1>Catalogo</h1>
+        @if (!cargando() && !error()) {
+          <span class="ceja">
+            {{ prendas().length }} {{ prendas().length === 1 ? 'prenda' : 'prendas' }}
+            @if (nombreSucursal()) {
+              · con stock en {{ nombreSucursal() }}
+            } @else {
+              · en todas las sucursales
+            }
+          </span>
+        }
+      </div>
+
+      <div class="pwa-control">
+        <button
+          type="button"
+          class="btn linea btn-offline"
+          (click)="descargarOffline()"
+          [disabled]="offline.descargando() || !offline.online()"
+          title="Descarga el catálogo para consultar y operar si se corta internet"
+        >
+          {{ offline.descargando() ? 'Descargando datos...' : '📥 Guardar catálogo offline' }}
+        </button>
+        @if (offline.fechaUltimaDescarga(); as fecha) {
+          <small class="meta-descarga">
+            ✓ {{ offline.prendasEnCache() }} prendas en IndexedDB ({{ fecha | date: 'dd/MM HH:mm' }})
+          </small>
+        }
+      </div>
     </div>
 
     @if (cargando() && prendas().length === 0) {

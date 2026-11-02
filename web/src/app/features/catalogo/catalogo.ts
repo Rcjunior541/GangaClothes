@@ -1,3 +1,4 @@
+import { CommonModule, DatePipe } from '@angular/common';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -5,6 +6,8 @@ import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxj
 
 import { API_URL } from '../../core/api';
 import { mensajeDeError } from '../../core/errores.interceptor';
+import { Notificaciones } from '../../core/notificaciones';
+import { IndexedDbService } from '../../core/offline/indexed-db.service';
 import { Registro, RecursoService } from '../../core/recurso.service';
 import { SesionStore } from '../../core/sesion';
 import { fechaSinZona, moneda, paraCampoFechaHora } from '../../shared/formato';
@@ -84,7 +87,7 @@ function sucursalGuardada(): number | null {
  */
 @Component({
   selector: 'app-catalogo',
-  imports: [RouterLink, BarraTienda],
+  imports: [CommonModule, RouterLink, BarraTienda, DatePipe],
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css',
   host: { '(document:keydown.escape)': 'cerrarDetalle()' },
@@ -92,7 +95,9 @@ function sucursalGuardada(): number | null {
 export class Catalogo {
   private http = inject(HttpClient);
   private recursos = inject(RecursoService);
+  private avisos = inject(Notificaciones);
   readonly sesion = inject(SesionStore);
+  readonly offline = inject(IndexedDbService);
   readonly moneda = moneda;
 
   // ---- opciones de los filtros ----
@@ -247,6 +252,12 @@ export class Catalogo {
     this.cargando.set(true);
     this.error.set(null);
 
+    // CU-12: Si el navegador ya sabe que está sin red, consultar IndexedDB local directamente
+    if (!this.offline.online()) {
+      this.cargarDesdeIndexedDB();
+      return;
+    }
+
     let params = new HttpParams();
     for (const [clave, valor] of Object.entries(filtros)) {
       if (valor !== null && valor !== '') params = params.set(clave, String(valor));
@@ -261,14 +272,55 @@ export class Catalogo {
         const abierta = this.abierta();
         const nueva = abierta && filas.find((p) => p.id === abierta.id);
         if (nueva) this.abierta.set(nueva);
+
+        // Auto-sincronización transparente (CU-11): guarda en IndexedDB sin intervención del usuario
+        if (filas.length > 0 && !filtros['q']) {
+          this.offline.autoGuardarEnSegundoPlano(filas, this.sucursalId());
+        }
       },
-      error: (err) => {
+      error: async (err) => {
         if (pedido !== this.pedido) return;
-        this.prendas.set([]);
-        this.error.set(mensajeDeError(err, 'No se pudo cargar el catalogo.'));
-        this.cargando.set(false);
+        // Fallback a almacenamiento local si se cortó la conexión (CU-12)
+        const recuperado = await this.cargarDesdeIndexedDB();
+        if (!recuperado) {
+          this.prendas.set([]);
+          this.error.set(mensajeDeError(err, 'No se pudo cargar el catalogo.'));
+          this.cargando.set(false);
+        }
       },
     });
+  }
+
+  // ------------------------------------------------------------- PWA / Offline (CU-11 y CU-12)
+  descargarOffline(): void {
+    const sucursalId = this.sucursalId();
+    this.offline.descargarCatalogo(sucursalId).subscribe({
+      next: (resp) => {
+        const sucursal = resp.sucursal_nombre ? ` (${resp.sucursal_nombre})` : '';
+        this.avisos.ok(`✓ ${resp.total_prendas} prendas guardadas localmente en IndexedDB${sucursal}`);
+      },
+      error: () => {
+        this.avisos.error('Error al descargar el catálogo para modo offline.');
+      },
+    });
+  }
+
+  private async cargarDesdeIndexedDB(): Promise<boolean> {
+    try {
+      const locales = await this.offline.obtenerCatalogoLocal({
+        categoriaId: this.categoriaId(),
+        q: this.q(),
+      });
+      if (locales && locales.length > 0) {
+        this.prendas.set(locales);
+        this.cargando.set(false);
+        this.error.set(null);
+        return true;
+      }
+    } catch {
+      // IndexedDB vacío o inaccesible
+    }
+    return false;
   }
 
   /** Despues de reservar: la disponibilidad cambio, se vuelve a pedir con los mismos filtros. */
