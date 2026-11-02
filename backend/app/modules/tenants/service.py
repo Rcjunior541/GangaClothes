@@ -48,8 +48,10 @@ def verificar_disponibilidad_codigo(db: Session, codigo: str) -> bool:
 
 def registrar_tenant(db: Session, datos: RegistroTenantIn, ip_origen: str | None = None) -> Tenant:
     """Registra una empresa contratante, su suscripción y su administrador inicial (CU-01)."""
-    # 1. Asegurar catálogo de planes
+    # 1. Asegurar catálogo de planes, permisos y roles del sistema
     asegurar_planes_por_defecto(db)
+    from app.core.permisos import sincronizar_permisos_y_roles
+    sincronizar_permisos_y_roles(db)
 
     # 2. Validar unicidad del código de tenant
     if not verificar_disponibilidad_codigo(db, datos.codigo_tenant):

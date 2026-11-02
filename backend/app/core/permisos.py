@@ -156,3 +156,45 @@ DESCRIPCION_ROLES = {
     "cliente": "Compra en la tienda en linea",
     "proveedor": "Informa los productos que ofrece a la tienda",
 }
+
+
+def sincronizar_permisos_y_roles(db) -> None:
+    """Garantiza que la base de datos tenga todos los permisos definidos en el código
+    y que los roles base (especialmente 'administrador') tengan sus permisos asignados."""
+    from app.models.seguridad import Permiso, RolPermiso
+    from app.models.usuarios import Rol
+
+    por_codigo = {p.codigo: p for p in db.query(Permiso).all()}
+    for fila in catalogo():
+        if fila["codigo"] not in por_codigo:
+            p = Permiso(
+                codigo=fila["codigo"],
+                modulo=fila["modulo"],
+                accion=fila["accion"],
+                nombre=fila["nombre"],
+                descripcion=fila["descripcion"],
+            )
+            db.add(p)
+            db.flush()
+            por_codigo[p.codigo] = p
+
+    for nombre_rol, codigos in PERMISOS_POR_ROL.items():
+        rol = db.query(Rol).filter(Rol.nombre == nombre_rol).first()
+        if not rol:
+            rol = Rol(nombre=nombre_rol, descripcion=DESCRIPCION_ROLES.get(nombre_rol))
+            db.add(rol)
+            db.flush()
+        if nombre_rol == "administrador":
+            codigos = todos_los_codigos()
+
+        actuales = {
+            rp.permiso_id
+            for rp in db.query(RolPermiso).filter(RolPermiso.rol_id == rol.id).all()
+        }
+        for c in codigos:
+            p = por_codigo.get(c)
+            if p and p.id not in actuales:
+                db.add(RolPermiso(rol_id=rol.id, permiso_id=p.id))
+
+    db.commit()
+

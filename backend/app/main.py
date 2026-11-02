@@ -39,6 +39,21 @@ Base.metadata.create_all(bind=engine)
 # create_all no agrega columnas nuevas a tablas existentes: eso lo hace migraciones.py.
 migraciones.aplicar(engine)
 
+# Asegurar permisos del sistema, roles base y ciudades iniciales
+from app.core.database import SessionLocal
+from app.core.permisos import sincronizar_permisos_y_roles
+from app.models.sucursales import Ciudad
+
+with SessionLocal() as _db_inicio:
+    sincronizar_permisos_y_roles(_db_inicio)
+    if _db_inicio.query(Ciudad).count() == 0:
+        _db_inicio.add_all([
+            Ciudad(nombre="Santa Cruz de la Sierra", departamento="Santa Cruz"),
+            Ciudad(nombre="Cochabamba", departamento="Cochabamba"),
+            Ciudad(nombre="La Paz", departamento="La Paz"),
+        ])
+        _db_inicio.commit()
+
 app = FastAPI(
     title="GangaClothes API",
     version="0.1.0",
