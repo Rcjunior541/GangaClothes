@@ -44,6 +44,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/registro/registro').then((m) => m.Registro),
   },
   {
+    path: 'registro-empresa',
+    canActivate: [invitadoGuard],
+    loadComponent: () =>
+      import('./features/auth/registro-tenant/registro-tenant').then((m) => m.RegistroTenant),
+  },
+  {
     path: 'recuperar',
     canActivate: [invitadoGuard],
     loadComponent: () => import('./features/auth/recuperar/recuperar').then((m) => m.Recuperar),
@@ -86,6 +92,13 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () => import('./features/admin/inicio/inicio').then((m) => m.AdminInicio),
+      },
+      {
+        path: 'suscripcion',
+        canActivate: [rolGuard],
+        data: SOLO_ADMIN,
+        loadComponent: () =>
+          import('./features/admin/suscripcion/suscripcion').then((m) => m.SuscripcionComponent),
       },
       {
         path: 'dashboard',

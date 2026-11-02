@@ -1,0 +1,210 @@
+.auth-card-ancho {
+  max-width: 780px !important;
+  width: 100%;
+}
+
+.seccion-bloque {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--borde, #e2e8f0);
+}
+
+.seccion-titulo {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--texto-principal, #1e293b);
+  margin-bottom: 1rem;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.input-con-estado {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-con-estado input {
+  width: 100%;
+  padding-right: 2.2rem;
+}
+
+.estado-icono {
+  position: absolute;
+  right: 0.75rem;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.estado-icono.ok {
+  color: #16a34a;
+}
+
+.estado-icono.err {
+  color: #dc2626;
+}
+
+.estado-icono.cargando {
+  color: #64748b;
+}
+
+.campo-ok {
+  border-color: #16a34a !important;
+}
+
+.texto-ok {
+  color: #16a34a;
+}
+
+.texto-err {
+  color: #dc2626;
+}
+
+.ayuda-msg {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  color: #64748b;
+}
+
+/* Selector de Planes */
+.planes-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .planes-selector {
+    grid-template-columns: 1fr;
+  }
+}
+
+.plan-tarjeta {
+  position: relative;
+  border: 2px solid var(--borde, #e2e8f0);
+  border-radius: 12px;
+  padding: 1.25rem;
+  cursor: pointer;
+  background: var(--fondo-tarjeta, #ffffff);
+  transition: all 0.2s ease;
+}
+
+.plan-tarjeta:hover {
+  border-color: var(--primario, #4f46e5);
+}
+
+.plan-tarjeta.plan-seleccionado {
+  border-color: var(--primario, #4f46e5);
+  background: var(--primario-fondo, #f5f3ff);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+}
+
+.badge-recomendado {
+  position: absolute;
+  top: -10px;
+  right: 15px;
+  background: #f59e0b;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.05em;
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+}
+
+.plan-nombre {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.plan-precio {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primario, #4f46e5);
+}
+
+.plan-precio small {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.plan-features li {
+  margin-bottom: 0.4rem;
+}
+
+.plan-features li.no-incluye {
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+/* Ciclo de facturación */
+.ciclo-selector {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ciclo-selector label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+.botones-ciclo {
+  display: inline-flex;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.btn-ciclo {
+  background: #f8fafc;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.15s ease;
+}
+
+.btn-ciclo.activo {
+  background: var(--primario, #4f46e5);
+  color: #ffffff;
+  font-weight: 600;
+}

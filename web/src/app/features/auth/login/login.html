@@ -16,6 +16,20 @@
 
       <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
         <div class="grupo">
+          <label class="etiqueta" for="codigo_tenant">
+            Código de Empresa <small style="font-weight: normal; color: #64748b;">(solo tiendas/empleados)</small>
+          </label>
+          <input
+            id="codigo_tenant"
+            type="text"
+            class="campo"
+            formControlName="codigo_tenant"
+            placeholder="ej: boutique-luna (vacío si eres cliente general)"
+            autocomplete="organization"
+          />
+        </div>
+
+        <div class="grupo">
           <label class="etiqueta" for="email">Correo electronico</label>
           <input
             id="email"
@@ -61,6 +75,11 @@
         ¿Cliente nuevo?
         <a routerLink="/registro" [queryParams]="volverA ? { volverA } : {}">Crear cuenta</a>
         · <a routerLink="/catalogo">Ver el catalogo</a>
+      </p>
+
+      <p class="nuevo saas-link" style="margin-top: 0.5rem; font-size: 0.85rem;">
+        ¿Tienes una tienda de ropa?
+        <a routerLink="/registro-empresa" style="font-weight: 600; color: #4f46e5;">Registra tu empresa en FashionStore SaaS</a>
       </p>
 
       <!-- atajo de demostracion: cuentas de backend/seed.py, solo en local -->

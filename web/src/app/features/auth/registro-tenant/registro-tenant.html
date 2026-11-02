@@ -1,0 +1,224 @@
+<div class="auth-wrap">
+  <div class="auth-card auth-card-ancho">
+    <div class="auth-header">
+      <span class="auth-tag">FASHIONSTORE SAAS</span>
+      <h1>Registra tu Empresa</h1>
+      <p class="auth-sub">
+        Abre tu espacio de trabajo independiente para gestionar tus tiendas de ropa, empleados y ventas.
+      </p>
+    </div>
+
+    @if (error()) {
+      <div class="auth-alerta error" role="alert">
+        {{ error() }}
+      </div>
+    }
+
+    <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+      <!-- SECCIÓN 1: DATOS DE LA EMPRESA -->
+      <div class="seccion-bloque">
+        <h2 class="seccion-titulo">1. Datos de la Empresa</h2>
+        <div class="grid-2">
+          <div class="campo">
+            <label for="nombre_empresa">Nombre / Razón Social <span class="req">*</span></label>
+            <input
+              id="nombre_empresa"
+              type="text"
+              formControlName="nombre_empresa"
+              placeholder="Ej: Boutique Luna SRL"
+              [class.campo-error]="invalido('nombre_empresa')"
+            />
+            @if (invalido('nombre_empresa')) {
+              <span class="error-msg">El nombre de la empresa es obligatorio.</span>
+            }
+          </div>
+
+          <div class="campo">
+            <label for="codigo_tenant">Código Único de Empresa <span class="req">*</span></label>
+            <div class="input-con-estado">
+              <input
+                id="codigo_tenant"
+                type="text"
+                formControlName="codigo_tenant"
+                placeholder="ej: boutique-luna"
+                (input)="onCodigoInput($event)"
+                [class.campo-error]="invalido('codigo_tenant') || codigoDisponible() === false"
+                [class.campo-ok]="codigoDisponible() === true"
+              />
+              @if (codigoVerificando()) {
+                <span class="estado-icono cargando">...</span>
+              } @else if (codigoDisponible() === true) {
+                <span class="estado-icono ok" title="Código disponible">✓</span>
+              } @else if (codigoDisponible() === false) {
+                <span class="estado-icono err" title="Código ocupado">✕</span>
+              }
+            </div>
+            @if (codigoMensaje()) {
+              <span class="ayuda-msg" [class.texto-ok]="codigoDisponible()" [class.texto-err]="codigoDisponible() === false">
+                {{ codigoMensaje() }}
+              </span>
+            } @else {
+              <span class="ayuda-msg">Letras minúsculas, números y guiones. Se usará para iniciar sesión.</span>
+            }
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="campo">
+            <label for="nit">NIT / Identificación</label>
+            <input id="nit" type="text" formControlName="nit" placeholder="Ej: 1020304050" />
+          </div>
+          <div class="campo">
+            <label for="telefono">Teléfono de Contacto</label>
+            <input id="telefono" type="text" formControlName="telefono" placeholder="Ej: 70012345" />
+          </div>
+          <div class="campo">
+            <label for="direccion">Dirección Fiscal</label>
+            <input id="direccion" type="text" formControlName="direccion" placeholder="Ej: Av. San Martín #123" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 2: PLAN DE SUSCRIPCIÓN -->
+      <div class="seccion-bloque">
+        <h2 class="seccion-titulo">2. Plan de Suscripción</h2>
+        <div class="planes-selector">
+          <div
+            class="plan-tarjeta"
+            [class.plan-seleccionado]="formulario.controls.plan_codigo.value === 'basico'"
+            (click)="seleccionarPlan('basico')"
+          >
+            <div class="plan-header">
+              <span class="plan-nombre">Plan Básico</span>
+              <span class="plan-precio">Bs 150 <small>/mes</small></span>
+            </div>
+            <ul class="plan-features">
+              <li>✓ Hasta <strong>2 sucursales</strong> activas</li>
+              <li>✓ Gestión de productos, inventario y ventas</li>
+              <li>✓ Operación offline (PWA y Móvil)</li>
+              <li>✓ Reportes convencionales y CSV</li>
+              <li class="no-incluye">✕ Sin Reportes Generativos con IA</li>
+            </ul>
+          </div>
+
+          <div
+            class="plan-tarjeta destacada"
+            [class.plan-seleccionado]="formulario.controls.plan_codigo.value === 'profesional'"
+            (click)="seleccionarPlan('profesional')"
+          >
+            <div class="badge-recomendado">RECOMENDADO</div>
+            <div class="plan-header">
+              <span class="plan-nombre">Plan Profesional</span>
+              <span class="plan-precio">Bs 450 <small>/mes</small></span>
+            </div>
+            <ul class="plan-features">
+              <li>✓ Hasta <strong>10 sucursales</strong> activas</li>
+              <li>✓ Gestión completa de productos y compras</li>
+              <li>✓ Operación offline y sincronización por lotes</li>
+              <li>✓ Delivery con cálculo geodésico Haversine</li>
+              <li>★ <strong>Reportes Generativos con IA (Texto/Voz)</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ciclo-selector">
+          <label>Ciclo de Facturación:</label>
+          <div class="botones-ciclo">
+            <button
+              type="button"
+              class="btn-ciclo"
+              [class.activo]="formulario.controls.ciclo_facturacion.value === 'mensual'"
+              (click)="seleccionarCiclo('mensual')"
+            >
+              Mensual
+            </button>
+            <button
+              type="button"
+              class="btn-ciclo"
+              [class.activo]="formulario.controls.ciclo_facturacion.value === 'anual'"
+              (click)="seleccionarCiclo('anual')"
+            >
+              Anual (Ahorra 2 meses)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 3: ADMINISTRADOR INICIAL -->
+      <div class="seccion-bloque">
+        <h2 class="seccion-titulo">3. Usuario Administrador de la Empresa</h2>
+        <div class="grid-2">
+          <div class="campo">
+            <label for="admin_nombre">Nombre <span class="req">*</span></label>
+            <input
+              id="admin_nombre"
+              type="text"
+              formControlName="admin_nombre"
+              placeholder="Ej: Ana"
+              [class.campo-error]="invalido('admin_nombre')"
+            />
+          </div>
+          <div class="campo">
+            <label for="admin_apellido">Apellido</label>
+            <input id="admin_apellido" type="text" formControlName="admin_apellido" placeholder="Ej: Gutiérrez" />
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="admin_email">Correo Electrónico <span class="req">*</span></label>
+          <input
+            id="admin_email"
+            type="email"
+            formControlName="admin_email"
+            placeholder="admin@tuempresa.com"
+            [class.campo-error]="invalido('admin_email')"
+          />
+          @if (invalido('admin_email')) {
+            <span class="error-msg">Ingresa un correo válido para el administrador.</span>
+          }
+        </div>
+
+        <div class="grid-2">
+          <div class="campo">
+            <label for="admin_password">Contraseña <span class="req">*</span></label>
+            <input
+              id="admin_password"
+              type="password"
+              formControlName="admin_password"
+              placeholder="Mínimo 8 caracteres"
+              [class.campo-error]="invalido('admin_password')"
+            />
+            <app-reglas-contrasena [valor]="formulario.controls.admin_password.value" />
+          </div>
+
+          <div class="campo">
+            <label for="confirmar_password">Confirmar Contraseña <span class="req">*</span></label>
+            <input
+              id="confirmar_password"
+              type="password"
+              formControlName="confirmar_password"
+              placeholder="Repite la contraseña"
+              [class.campo-error]="invalido('confirmar_password') || distintas()"
+            />
+            @if (distintas()) {
+              <span class="error-msg">Las contraseñas no coinciden.</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primario ancho-total" [disabled]="enviando()">
+        @if (enviando()) {
+          Registrando Empresa...
+        } @else {
+          Crear Empresa y Activar Plan
+        }
+      </button>
+    </form>
+
+    <div class="auth-pie">
+      ¿Tu empresa ya está registrada?
+      <a routerLink="/login">Inicia sesión aquí</a>
+    </div>
+  </div>
+</div>
