@@ -20,7 +20,10 @@ const ADMIN: Rol[] = ['administrador'];
 export const MENU: GrupoMenu[] = [
   {
     titulo: 'General',
-    items: [{ etiqueta: 'Panel', ruta: '/admin', roles: ['administrador', 'encargado', 'cajero'], disponible: true }],
+    items: [
+      { etiqueta: 'Panel', ruta: '/admin', roles: ['administrador', 'encargado', 'cajero'], disponible: true },
+      { etiqueta: 'Mi Suscripción', ruta: '/admin/suscripcion', roles: ADMIN, disponible: true },
+    ],
   },
   {
     titulo: 'Analisis',

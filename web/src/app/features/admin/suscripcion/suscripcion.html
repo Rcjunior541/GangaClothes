@@ -1,0 +1,187 @@
+<div class="suscripcion-page">
+  <div class="encabezado-suscripcion">
+    <div>
+      <h1>Estado de Suscripción y Límites</h1>
+      <p class="subtitulo">
+        Administra el plan de tu empresa, revisa el consumo de sucursales y desbloquea funciones avanzadas.
+      </p>
+    </div>
+    @if (suscripcion()) {
+      <button type="button" class="btn rosa" (click)="abrirModalCambio()">
+        Cambiar de Plan
+      </button>
+    }
+  </div>
+
+  @if (cargando()) {
+    <p class="cargando-txt">Cargando datos de la suscripción…</p>
+  } @else if (error()) {
+    <div class="alerta-error">
+      <p>{{ error() }}</p>
+      <button type="button" class="btn linea" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else if (suscripcion(); as s) {
+    <!-- ALERTA SI ESTÁ POR VENCER -->
+    @if (s.por_vencer) {
+      <div class="banner-alerta-vence">
+        ⚠ Tu suscripción está próxima a vencer en <strong>{{ s.dias_restantes }} día(s)</strong>. Renueva tu ciclo para evitar interrupciones.
+      </div>
+    }
+
+    <!-- GRID DE TARJETAS PRINCIPALES -->
+    <div class="grid-resumen">
+      <!-- Tarjeta 1: Plan Actual -->
+      <div class="card-metrica">
+        <span class="metrica-etiqueta">Plan Contratado</span>
+        <div class="metrica-valor-destacado">{{ s.plan_actual.nombre }}</div>
+        <div class="metrica-extra">
+          <span class="badge-estado" [class.activa]="s.estado === 'activa'">{{ s.estado | uppercase }}</span>
+          <span class="ciclo-txt">Ciclo {{ s.ciclo_facturacion }}</span>
+        </div>
+        <p class="metrica-desc">{{ s.plan_actual.descripcion }}</p>
+      </div>
+
+      <!-- Tarjeta 2: Consumo de Sucursales -->
+      <div class="card-metrica">
+        <span class="metrica-etiqueta">Consumo de Sucursales</span>
+        <div class="metrica-valor-destacado">
+          {{ s.sucursales_activas }} <small>/ {{ s.limite_sucursales }}</small>
+        </div>
+        <div class="barra-progreso">
+          <div
+            class="barra-llenado"
+            [style.width.%]="(s.sucursales_activas / s.limite_sucursales) * 100"
+            [class.alerta]="s.cupos_disponibles === 0"
+          ></div>
+        </div>
+        <div class="metrica-sub">
+          @if (s.cupos_disponibles === 0) {
+            <span class="texto-rojo">Cupo de sucursales agotado</span>
+          } @else {
+            <span class="texto-verde">{{ s.cupos_disponibles }} cupo(s) disponible(s)</span>
+          }
+        </div>
+      </div>
+
+      <!-- Tarjeta 3: Inteligencia Artificial Generativa -->
+      <div class="card-metrica">
+        <span class="metrica-etiqueta">Reportes Generativos con IA</span>
+        <div class="metrica-valor-destacado">
+          @if (s.permite_ia_generativa) {
+            <span class="ia-activa">HABILITADA ★</span>
+          } @else {
+            <span class="ia-inactiva">NO INCLUIDA ✕</span>
+          }
+        </div>
+        <p class="metrica-desc">
+          @if (s.permite_ia_generativa) {
+            Consultas empresariales por texto y voz habilitadas.
+          } @else {
+            Disponible exclusivamente en el <strong>Plan Profesional</strong>.
+          }
+        </p>
+      </div>
+    </div>
+
+    <!-- SECCIÓN COMPARATIVA DE PLANES -->
+    <div class="seccion-comparativa">
+      <h2>Planes Disponibles en la Plataforma</h2>
+      <div class="grid-planes-comparativa">
+        @for (plan of s.planes_disponibles; track plan.id) {
+          <div class="card-plan" [class.es-actual]="plan.id === s.plan_actual.id">
+            @if (plan.id === s.plan_actual.id) {
+              <div class="badge-plan-actual">PLAN ACTUAL</div>
+            }
+            <div class="plan-card-header">
+              <h3>{{ plan.nombre }}</h3>
+              <div class="precio">Bs {{ plan.precio_mensual }} <small>/mes</small></div>
+            </div>
+            <ul class="features-lista">
+              <li>✓ Hasta <strong>{{ plan.limite_sucursales }} sucursales</strong> activas</li>
+              <li>✓ Gestión integral de productos e inventarios</li>
+              <li>✓ Operación offline (PWA Angular e IndexedDB / SQLite móvil)</li>
+              <li>✓ Sincronización por lotes con idempotencia</li>
+              @if (plan.permite_ia_generativa) {
+                <li class="destacado-ia">★ <strong>Reportes Generativos con IA (Texto / Voz)</strong></li>
+              } @else {
+                <li class="tachado">✕ Sin Reportes Generativos con IA</li>
+              }
+            </ul>
+            @if (plan.id !== s.plan_actual.id) {
+              <button type="button" class="btn linea ancho-total" (click)="abrirModalCambio()">
+                Cambiar a este Plan
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- MODAL CAMBIO DE PLAN -->
+  @if (modalCambioAbierto()) {
+    <div class="modal-backdrop" (click)="cerrarModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Cambiar Plan de Suscripción</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
+        </div>
+
+        @if (errorCambio()) {
+          <div class="alerta-error">{{ errorCambio() }}</div>
+        }
+
+        <div class="modal-body">
+          <p class="instruccion">
+            Selecciona el nuevo plan y ciclo para tu empresa <strong>{{ suscripcion()?.empresa_nombre }}</strong>:
+          </p>
+
+          <div class="selector-opciones-plan">
+            @for (p of suscripcion()?.planes_disponibles; track p.codigo) {
+              <div
+                class="opcion-plan"
+                [class.seleccionado]="planSeleccionado() === p.codigo"
+                (click)="planSeleccionado.set(p.codigo)"
+              >
+                <div>
+                  <strong>{{ p.nombre }}</strong> · Bs {{ p.precio_mensual }}/mes
+                  <div class="detalle-sub">Hasta {{ p.limite_sucursales }} sucursales · {{ p.permite_ia_generativa ? 'Con IA Generativa' : 'Sin IA' }}</div>
+                </div>
+                <input type="radio" [checked]="planSeleccionado() === p.codigo" />
+              </div>
+            }
+          </div>
+
+          <div class="selector-ciclo-modal">
+            <label>Ciclo de facturación:</label>
+            <div class="botones-ciclo">
+              <button
+                type="button"
+                [class.activo]="cicloSeleccionado() === 'mensual'"
+                (click)="cicloSeleccionado.set('mensual')"
+              >
+                Mensual
+              </button>
+              <button
+                type="button"
+                [class.activo]="cicloSeleccionado() === 'anual'"
+                (click)="cicloSeleccionado.set('anual')"
+              >
+                Anual
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn linea" (click)="cerrarModal()" [disabled]="cambiandoPlan()">
+            Cancelar
+          </button>
+          <button type="button" class="btn rosa" (click)="confirmarCambio()" [disabled]="cambiandoPlan()">
+            {{ cambiandoPlan() ? 'Actualizando...' : 'Confirmar Cambio de Plan' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

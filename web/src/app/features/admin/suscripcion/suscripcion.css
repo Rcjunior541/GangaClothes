@@ -1,0 +1,48 @@
+.suscripcion-page{padding:1.5rem;max-width:1100px;margin:0 auto}
+.encabezado-suscripcion{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;gap:1rem}
+.encabezado-suscripcion h1{font-size:1.75rem;font-weight:700;color:#1e293b;margin:0 0 .5rem}
+.subtitulo,.ciclo-txt,.metrica-desc{color:#64748b;font-size:.85rem}
+.banner-alerta-vence{background:#fef3c7;border-left:4px solid #f59e0b;color:#92400e;padding:.85rem 1.25rem;border-radius:8px;margin-bottom:1.5rem}
+.grid-resumen,.grid-planes-comparativa{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2.5rem}
+.card-metrica,.card-plan{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.5rem}
+.metrica-etiqueta{font-size:.8rem;font-weight:600;text-transform:uppercase;color:#64748b}
+.metrica-valor-destacado{font-size:1.85rem;font-weight:800;color:#0f172a;margin:.6rem 0}
+.metrica-valor-destacado small{font-size:1rem;color:#94a3b8}
+.metrica-extra{display:flex;align-items:center;gap:.75rem}
+.badge-estado{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#dcfce7;color:#16a34a}
+.barra-progreso{width:100%;height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin:.75rem 0 .5rem}
+.barra-llenado{height:100%;background:#4f46e5}
+.barra-llenado.alerta,.texto-rojo{color:#dc2626;background:#dc2626}
+.metrica-sub{font-size:.8rem;font-weight:600}
+.texto-verde{color:#16a34a}
+.ia-activa{color:#4f46e5;font-size:1.35rem}
+.ia-inactiva{color:#94a3b8;font-size:1.35rem}
+.seccion-comparativa h2{font-size:1.3rem;color:#1e293b;margin-bottom:1.25rem}
+.card-plan{position:relative;border-width:2px}
+.card-plan.es-actual{border-color:#4f46e5;background:#faf5ff}
+.badge-plan-actual{position:absolute;top:-12px;left:20px;background:#4f46e5;color:#fff;font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:999px}
+.plan-card-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #e2e8f0}
+.plan-card-header h3{margin:0;font-size:1.25rem}
+.precio{font-size:1.5rem;font-weight:800;color:#4f46e5}
+.precio small{font-size:.85rem;color:#64748b}
+.features-lista{list-style:none;padding:0;margin:0 0 1.5rem;font-size:.9rem;color:#475569}
+.features-lista li{margin-bottom:.5rem}
+.features-lista li.tachado{color:#94a3b8;text-decoration:line-through}
+.destacado-ia{color:#4f46e5;font-weight:600}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal-card{background:#fff;border-radius:12px;width:100%;max-width:520px}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-bottom:1px solid #e2e8f0}
+.modal-header h2{margin:0;font-size:1.15rem}
+.btn-cerrar{background:none;border:none;font-size:1.25rem;cursor:pointer;color:#64748b}
+.modal-body{padding:1.5rem}
+.instruccion{font-size:.9rem;color:#475569;margin:0 0 1rem}
+.selector-opciones-plan{display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.25rem}
+.opcion-plan{display:flex;justify-content:space-between;align-items:center;border:2px solid #e2e8f0;border-radius:8px;padding:.75rem 1rem;cursor:pointer}
+.opcion-plan.seleccionado{border-color:#4f46e5;background:#f5f3ff}
+.detalle-sub{font-size:.75rem;color:#64748b}
+.selector-ciclo-modal{display:flex;align-items:center;gap:1rem;font-size:.9rem}
+.botones-ciclo{display:inline-flex;border:1px solid #cbd5e1;border-radius:6px;overflow:hidden}
+.botones-ciclo button{background:#f8fafc;border:none;padding:.35rem .75rem;font-size:.8rem;cursor:pointer}
+.botones-ciclo button.activo{background:#4f46e5;color:#fff;font-weight:600}
+.modal-footer{display:flex;justify-content:flex-end;gap:.75rem;padding:1rem 1.5rem;background:#f8fafc;border-top:1px solid #e2e8f0}
+.alerta-error{background:#fee2e2;border-left:4px solid #dc2626;color:#991b1b;padding:.75rem 1rem;border-radius:6px;margin-bottom:1rem;font-size:.85rem}

@@ -21,6 +21,8 @@ from app.modules.promociones.router import router as promociones_router
 from app.modules.reportes.router import router as reportes_router
 from app.modules.proveedores.router import router as oferta_router
 from app.modules.ia.router import router as ia_router
+from app.modules.tenants.router import router as tenants_router
+from app.modules.suscripciones.router import router as suscripciones_router
 
 # Mensajes propios (por ejemplo, si un correo no se pudo enviar) en la consola,
 # junto a los de uvicorn. En Render se ven en la pestana Logs.
@@ -54,6 +56,8 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/api/auth", tags=["1. Autenticacion (CU1-CU2, CU20-CU21)"])
+app.include_router(tenants_router, prefix="/api/tenants", tags=["0. SaaS Multitenant y Empresas (CU-01)"])
+app.include_router(suscripciones_router, prefix="/api/suscripciones", tags=["0b. Suscripciones y Planes (CU-05, CU-07)"])
 app.include_router(usuarios_router, prefix="/api/usuarios", tags=["2. Usuarios y roles (CU3)"])
 app.include_router(seguridad_router, prefix="/api/seguridad", tags=["2b. Roles, permisos y bitacora (CU3)"])
 app.include_router(catalogos_router, prefix="/api/admin", tags=["3. Catalogos base (CU4-CU6, CU8)"])
