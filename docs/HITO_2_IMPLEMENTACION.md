@@ -4,7 +4,7 @@
 **Materia:** Sistemas de Información II (UAGRM) — S2-2026  
 **Docente:** MSc. Ing. Angélica Garzón Cuéllar  
 **Metodología:** ICONIX  
-**Hito 2:** Operación Offline Completa, Motor de Sincronización, Consistencia de Inventario y Cambios de Ropa  
+**Hito 2:** Persistencia Local, Operación Offline, Motor de Sincronización y Cambios de Ropa  
 **Autores:** Junior (Integrante 1) y Compañero (Integrante 2)
 
 ---
@@ -35,12 +35,18 @@ Tomando como base los cimientos multitenant y la persistencia local inicial esta
      * Calcula diferencia de precio (a favor de la tienda o saldo a favor del cliente).
 4. **Adaptación de Delivery Multitenant (CU-09 y CU-10):**
    * Extender `app/models/envios.py` con `TenantMixin` para que las tablas `envio` y las consultas geodésicas de sucursales filtren estrictamente por `tenant_id`.
+5. **Endpoint de Descarga de Catálogo Local (`app/modules/prendas/` - CU-11):**
+   * Crear `GET /api/catalogo/descarga-offline?sucursal_id=X`: entrega el catálogo plano estructurado (prendas, variantes, stock de sucursal y promociones vigentes) para inserción en lote en IndexedDB y SQLite.
 
 ---
 
 ### B. Frontend Web PWA (`web/`)
-1. **Persistencia Local Extendida con IndexedDB (`src/app/core/offline/indexed-db.service.ts`):**
-   * Extender los almacenes de objetos (*object stores*):
+1. **Configuración PWA (`package.json`, `angular.json`):**
+   * Incorporar `@angular/service-worker` y generar `ngsw-config.json` para cachear bundles y assets.
+   * Configurar `manifest.webmanifest` para instalación como aplicación de escritorio/móvil.
+2. **Persistencia Local con IndexedDB (`src/app/core/offline/indexed-db.service.ts`):**
+   * Crear y extender los almacenes de objetos (*object stores*):
+     * `catalogo_local`: Productos, variantes y existencias conocidas (CU-11).
      * `ventas_offline`: Ventas de contado emitidas sin red con su `uuid_operacion`, detalle de variantes, total y estado `LOCAL`.
      * `reservas_offline`: Reservas locales con `uuid_operacion`.
      * `cola_sincronizacion`: Cola ordenada FIFO de operaciones pendientes de envío al servidor.
@@ -63,8 +69,11 @@ Tomando como base los cimientos multitenant y la persistencia local inicial esta
 ---
 
 ### C. App Móvil Flutter (`mobile/`)
-1. **Persistencia Relacional Local con SQLite (`lib/core/database/`):**
+1. **Dependencias Locales (`pubspec.yaml`):**
+   * Agregar dependencias de persistencia local: `sqflite: ^2.4.1` y `path: ^1.9.0`.
+2. **Persistencia Relacional Local con SQLite (`lib/core/database/`):**
    * En `app_database.dart`, crear tablas relacionales locales:
+     * `offline_products`, `offline_variants`, `offline_stock`: Tablas para el catálogo local (CU-11).
      * `offline_sales` (`uuid TEXT PRIMARY KEY`, `sucursal_id INTEGER`, `usuario_id INTEGER`, `total REAL`, `fecha_local TEXT`, `sync_status TEXT`).
      * `offline_sale_items` (`id INTEGER PRIMARY KEY`, `sale_uuid TEXT`, `variante_id INTEGER`, `cantidad INTEGER`, `precio REAL`).
      * `offline_reservations` y `offline_reservation_items`.
@@ -131,12 +140,36 @@ Tomando como base los cimientos multitenant y la persistencia local inicial esta
 
 ---
 
+### CU-11: Descargar y Almacenar Catálogo Local (PWA IndexedDB / Móvil SQLite)
+* **Autor:** Compañero
+* **Fecha:** 08/11/2026
+* **Descripción:** Permite a la aplicación web (PWA) y a la app móvil descargar y almacenar en persistencia local estructurada los productos, variantes y existencias conocidas de la sucursal para hacer posible la venta y consulta offline.
+* **Actores:** Vendedor, Cajero, Cliente.
+* **Precondiciones:** El dispositivo cuenta con conexión a Internet y el usuario ha seleccionado su sucursal de operación.
+* **Flujo Normal:**
+  1. El actor pulsa la opción "Descargar Datos Offline" o la aplicación detecta inicio de sesión con red activa.
+  2. La aplicación cliente solicita al backend el dataset plano de catálogo de la sucursal (`GET /api/catalogo/descarga-offline?sucursal_id=X`).
+  3. El backend compila y retorna los productos, variantes (talla, color, SKU), precios y cantidades disponibles en esa sucursal.
+  4. La aplicación web almacena los datos en **IndexedDB** a través de su almacén de objetos `catalogo_local`.
+  5. La aplicación móvil almacena los registros en **SQLite** ejecutando una inserción por lotes en las tablas locales `offline_products` y `offline_variants`.
+  6. El sistema actualiza en el dispositivo la fecha y hora de la última descarga exitosa y notifica: *"Catálogo local actualizado. Listo para operar sin conexión."*
+* **Flujos Alternativos:**
+  * **2a. Falla de conexión a mitad de descarga:** La transacción local se cancela (*rollback*) y el almacenamiento conserva la versión anterior sin corromperse.
+  * **2b. Sucursal sin productos cargados:** El sistema notifica que no hay existencias para cachear y mantiene el almacén vacío.
+* **Poscondiciones:** El dispositivo cuenta con una base de datos local completa (IndexedDB en navegador / SQLite en teléfono) lista para soportar las ventas y consultas offline.
+* **Qué y dónde editar:**
+  * Backend: Endpoint `GET /api/catalogo/descarga-offline` en `app/modules/prendas/router.py`.
+  * Frontend (PWA): Crear `src/app/core/offline/indexed-db.service.ts` y botón de sincronización en `src/app/features/tienda/catalogo/`.
+  * Móvil: Agregar `sqflite` y `path` en `pubspec.yaml`, crear `lib/core/database/app_database.dart` y servicio de persistencia en `lib/features/catalog/offline_catalog_service.dart`.
+
+---
+
 ### CU-12: Consultar Catálogo y Existencias en Modo Offline
 * **Autor:** Compañero
 * **Fecha:** 08/11/2026
 * **Descripción:** Permite a clientes y vendedores consultar productos, precios, tallas, colores y existencias conocidas directamente desde el almacenamiento local cuando el dispositivo pierde conexión.
 * **Actores:** Vendedor, Cajero, Cliente.
-* **Precondiciones:** Se ha ejecutado previamente la descarga del catálogo local (CU-11 en Hito 1). El dispositivo se encuentra sin red o en modo avión.
+* **Precondiciones:** Se ha ejecutado previamente la descarga del catálogo local (CU-11 en este hito). El dispositivo se encuentra sin red o en modo avión.
 * **Flujo Normal:**
   1. El actor abre el catálogo de productos en la PWA o en la app móvil.
   2. La aplicación detecta que no hay conexión activa con el backend.

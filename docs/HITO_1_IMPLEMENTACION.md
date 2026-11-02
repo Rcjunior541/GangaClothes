@@ -4,7 +4,7 @@
 **Materia:** Sistemas de Información II (UAGRM) — S2-2026  
 **Docente:** MSc. Ing. Angélica Garzón Cuéllar  
 **Metodología:** ICONIX  
-**Hito 1:** Cimientos SaaS Multitenant, Suscripciones y Persistencia Local Inicial  
+**Hito 1:** Cimientos SaaS Multitenant, Suscripciones y Límites de Plan  
 **Autores:** Junior (Integrante 1) y Compañero (Integrante 2)
 
 ---
@@ -32,35 +32,24 @@ Antes de ver cada caso de uso en detalle, este es el inventario exacto de lo que
    * `app/modules/auth/`: Adaptar login para recibir `codigo_tenant` + `email` + `password` (CU-02) y login dedicado para Superadmin.
    * `app/modules/suscripciones/`: Router, service y schemas para planes, cambio de plan y consulta de límites (CU-05, CU-06, CU-07).
    * `app/modules/sucursales/`: Validar cantidad de sucursales activas contra `plan.limite_sucursales` antes de insertar (CU-04).
-   * `app/modules/prendas/`: Crear endpoint `GET /api/catalogo/descarga-offline` que retorne el catálogo plano optimizado para almacenamiento local (CU-11).
 6. **`app/main.py`:**
    * Registrar los nuevos routers: `tenants_router`, `suscripciones_router`.
 
 ### B. Frontend Web PWA (`web/`)
-1. **Configuración PWA (`package.json`, `angular.json`):**
-   * Incorporar `@angular/service-worker` y generar `ngsw-config.json` para cachear bundles y assets.
-   * Configurar `manifest.webmanifest` para instalación como aplicación de escritorio/móvil.
-2. **`src/app/core/`:**
+1. **`src/app/core/`:**
    * Actualizar `modelos.ts` y `sesion.ts` para almacenar `codigo_tenant` y `tenant_id`.
-   * Crear `src/app/core/offline/indexed-db.service.ts`: servicio para inicializar y operar IndexedDB (almacén de productos, variantes y stock local).
-3. **`src/app/features/`:**
+2. **`src/app/features/`:**
    * `features/auth/login/`: Agregar campo `Código de Empresa` y vista de acceso administrativo.
+   * `features/auth/registro-tenant/`: Pantalla pública para el registro de empresa (CU-01).
    * `features/admin/suscripcion/`: Nueva pantalla que muestra consumo de sucursales (*"1 de 2 ocupadas"*), fecha de vencimiento y botón de cambio de plan (CU-07, CU-05).
    * `features/admin/sucursales/`: Mostrar banner de advertencia cuando el plan esté en su límite máximo e inhabilitar botón de creación (CU-04).
-   * `features/tienda/catalogo/`: Botón para disparar la descarga de catálogo a IndexedDB (CU-11).
 
 ### C. App Móvil Flutter (`mobile/`)
-1. **`pubspec.yaml`:**
-   * Agregar dependencias de persistencia local: `sqflite: ^2.4.1` y `path: ^1.9.0`.
-2. **`lib/core/`:**
+1. **`lib/core/`:**
    * Modificar `session_storage.dart` para persistir `tenant_id` y `codigo_tenant`.
-   * Modificar `api_client.dart` para enviar cabeceras con contexto multitenant.
-3. **Persistencia Local (`lib/core/database/`):**
-   * Crear `app_database.dart`: inicializa SQLite creando tablas locales `offline_products`, `offline_variants`, `offline_stock`.
-   * Crear repositorio `offline_catalog_repository.dart` que consume `GET /api/catalogo/descarga-offline` e inserta por lotes en SQLite (CU-11).
-4. **`lib/features/`:**
+   * Modificar `api_client.dart` y `auth_service.dart` para enviar cabeceras con contexto multitenant.
+2. **`lib/features/`:**
    * `features/auth/`: Agregar campo de código de empresa en la pantalla de login (CU-02).
-   * `features/catalog/`: Añadir opción en menú o barra superior para sincronizar catálogo localmente con SQLite (CU-11).
 
 ---
 
@@ -250,24 +239,189 @@ Antes de ver cada caso de uso en detalle, este es el inventario exacto de lo que
 
 ---
 
-### CU-11: Descargar y Almacenar Catálogo Local (PWA IndexedDB / Móvil SQLite)
-* **Autor:** Compañero
-* **Fecha:** 01/11/2026
-* **Descripción:** Permite a la aplicación web (PWA) y a la app móvil descargar y almacenar en persistencia local estructurada los productos, variantes y existencias conocidas para hacer posible la venta y consulta offline.
-* **Actores:** Vendedor, Cajero, Cliente.
-* **Precondiciones:** El dispositivo cuenta con conexión a Internet y el usuario ha seleccionado su sucursal de operación.
-* **Flujo Normal:**
-  1. El actor pulsa la opción "Descargar Datos Offline" o la aplicación detecta inicio de sesión con red activa.
-  2. La aplicación cliente solicita al backend el dataset plano de catálogo de la sucursal (`GET /api/catalogo/descarga-offline?sucursal_id=X`).
-  3. El backend compila y retorna los productos, variantes (talla, color, SKU), precios y cantidades disponibles en esa sucursal.
-  4. La aplicación web almacena los datos en **IndexedDB** a través de su almacén de objetos `catalogo_local`.
-  5. La aplicación móvil almacena los registros en **SQLite** ejecutando una inserción por lotes en las tablas locales `offline_products` y `offline_variants`.
-  6. El sistema actualiza en el dispositivo la fecha y hora de la última descarga exitosa y notifica: *"Catálogo local actualizado. Listo para operar sin conexión."*
-* **Flujos Alternativos:**
-  * **2a. Falla de conexión a mitad de descarga:** La transacción local se cancela (*rollback*) y el almacenamiento conserva la versión anterior sin corromperse.
-  * **2b. Sucursal sin productos cargados:** El sistema notifica que no hay existencias para cachear y mantiene el almacén vacío.
-* **Poscondiciones:** El dispositivo cuenta con una base de datos local completa (IndexedDB en navegador / SQLite en teléfono) lista para soportar los casos de uso offline del Hito 2.
-* **Qué y dónde editar:**
-  * Backend: Endpoint `GET /api/catalogo/descarga-offline` en `app/modules/prendas/router.py`.
-  * Frontend (PWA): Crear `src/app/core/offline/indexed-db.service.ts` y botón de sincronización en `src/app/features/tienda/catalogo/`.
-  * Móvil: Agregar `sqflite` y `path` en `pubspec.yaml`, crear `lib/core/database/app_database.dart` y servicio de persistencia en `lib/features/catalog/offline_catalog_service.dart`.
+# 3. Guía de Pruebas Manuales — Cómo Probar Cada Caso de Uso del Hito 1
+
+Esta guía paso a paso permite a cualquier integrante del equipo o a la docente verificar de punta a punta el funcionamiento de los 8 casos de uso del Hito 1 en local o en producción.
+
+### Preparación Previa (Levantar el Sistema)
+1. **Iniciar el Backend:**
+   ```bash
+   cd backend
+   source .venv/bin/activate   # En Windows: .venv\Scripts\activate
+   uvicorn app.main:app --reload
+   ```
+   *Acceso a documentación interactiva:* **`http://localhost:8000/docs`**
+2. **Iniciar el Frontend Web:**
+   ```bash
+   cd web
+   npm start
+   ```
+   *Acceso a la aplicación:* **`http://localhost:4200`**
+
+---
+
+### Prueba 1: CU-01 — Registrar Empresa Contratante (Tenant)
+* **Objetivo:** Registrar una empresa nueva, crear su admin y activar su plan inicial.
+* **Pasos:**
+  1. Abrir el navegador en `http://localhost:4200/login`.
+  2. Hacer clic en el enlace inferior: *«¿Tienes una tienda de ropa? Registra tu empresa en FashionStore SaaS»* o ir directo a `http://localhost:4200/registro-empresa`.
+  3. En **1. Datos de la Empresa**:
+     * Nombre: `Boutique Luna SRL`.
+     * Código único: Escribir `luna`. Observar que aparece el indicador verde `✓ Código disponible` en tiempo real (debounce).
+     * NIT: `1020304050`.
+     * Teléfono: `70012345`.
+     * Dirección: `Av. San Martín #123`.
+  4. En **2. Plan de Suscripción**:
+     * Hacer clic sobre la tarjeta **Plan Básico** (Bs 150/mes, máx 2 sucursales).
+     * Seleccionar ciclo `Mensual`.
+  5. En **3. Usuario Administrador**:
+     * Nombre: `Ana`.
+     * Apellido: `Gutiérrez`.
+     * Email: `ana@boutiqueluna.com`.
+     * Contraseña: `Password123#` (observar que se cumplan las reglas de mayúscula, minúscula y número).
+     * Confirmar contraseña: `Password123#`.
+  6. Pulsar el botón **«Crear Empresa y Activar Plan»**.
+* **Resultado Esperado:**
+  * Aparece notificación verde de éxito: *«¡Empresa Boutique Luna SRL registrada con éxito! Ya puedes iniciar sesión.»*
+  * Redirige automáticamente a `/login` con los campos pre-llenados: Código de empresa `luna` y Correo `ana@boutiqueluna.com`.
+
+---
+
+### Prueba 2: CU-02 — Autenticar Usuario con Contexto de Tenant
+* **Objetivo:** Iniciar sesión con aislamiento por empresa y comprobar el token multitenant.
+* **Pasos:**
+  1. En `http://localhost:4200/login`, ingresar:
+     * Código de Empresa: `luna`.
+     * Correo: `ana@boutiqueluna.com`.
+     * Contraseña: `Password123#`.
+  2. Pulsar **«Iniciar sesión»**.
+* **Resultado Esperado:**
+  * Accede al panel administrativo `/admin`.
+  * En la cabecera superior derecha se observa el badge azul de la empresa: **«Ana Gutiérrez · administrador · Boutique Luna SRL»**.
+  * En la pestaña Network (F12) se observa que las peticiones llevan el header `Authorization: Bearer <token>`, cuyo payload decodificado contiene `tenant_id: 1`.
+* **Prueba de Flujo Alternativo (Error de código):**
+  * Cerrar sesión.
+  * Intentar entrar con Código `empresa-fantasma`, correo `ana@boutiqueluna.com` y clave `Password123#`.
+  * **Resultado:** Muestra error rojo: *«No existe ninguna empresa registrada con el código 'empresa-fantasma'»* (HTTP 404).
+
+---
+
+### Prueba 3: CU-03 — Administrar Empleados por Tenant (Aislamiento)
+* **Objetivo:** Demostrar que una empresa solo ve y administra a sus propios empleados.
+* **Pasos:**
+  1. Con la sesión iniciada como `Ana` (Boutique Luna), ir en el menú lateral a **Seguridad $\to$ Usuarios** (`/admin/usuarios`).
+  2. Observar que en la tabla solo figura `Ana Gutiérrez`. No figura ningún empleado ajeno.
+  3. Pulsar **«+ Nuevo»** y crear un cajero:
+     * Nombre: `Pedro`.
+     * Apellido: `Cajero`.
+     * Email: `cajero@boutiqueluna.com`.
+     * Contraseña: `Password123#`.
+     * Rol: Seleccionar chip `cajero`.
+  4. Guardar. En la tabla ahora figuran 2 usuarios (`Ana` y `Pedro`).
+* **Verificación de Aislamiento Cruzado (Prueba con 2da Empresa):**
+  1. Abrir una ventana de incógnito e ir a `/registro-empresa`.
+  2. Registrar una segunda empresa:
+     * Código: `sol`.
+     * Nombre: `Confecciones Sol`.
+     * Plan: `Profesional`.
+     * Admin: `carlos@sol.com` / `Password123#`.
+  3. Iniciar sesión como `Carlos` (Confecciones Sol) e ir a `/admin/usuarios`.
+* **Resultado Esperado:**
+  * Carlos solo ve su cuenta `carlos@sol.com`.
+  * **No aparece ni Ana ni Pedro de Boutique Luna.** El aislamiento en base de datos es 100% efectivo.
+
+---
+
+### Prueba 4: CU-04 — Gestionar Sucursales con Límite de Plan
+* **Objetivo:** Demostrar el tope de 2 sucursales en Plan Básico y el bloqueo preventivo del sistema.
+* **Pasos:**
+  1. Iniciar sesión en **Boutique Luna** (Plan Básico, límite 2 sucursales).
+  2. En el menú lateral, ir a **Red de tiendas $\to$ Sucursales** (`/admin/sucursales`).
+  3. Observar el banner superior de consumo:  
+     *«Consumo de Sucursales (Plan Básico): 0 de 2 ocupadas — 2 cupo(s) disponible(s)»*.
+  4. Crear la **1ª Sucursal**:
+     * Ciudad: Seleccionar una ciudad (ej. `Santa Cruz de la Sierra`).
+     * Nombre: `Sucursal Centro`.
+     * Dirección: `Calle 21 de Mayo #100`.
+     * Guardar. El banner se actualiza a: *«1 de 2 ocupadas — 1 cupo disponible»*.
+  5. Crear la **2ª Sucursal**:
+     * Ciudad: `Santa Cruz de la Sierra`.
+     * Nombre: `Sucursal Equipetrol`.
+     * Guardar. El banner se actualiza en rojo: *«2 de 2 ocupadas — Cupo de plan agotado»*.
+  6. Intentar crear una **3ª Sucursal**:
+     * Ciudad: `Santa Cruz de la Sierra`.
+     * Nombre: `Sucursal Norte Excedida`.
+     * Pulsar Guardar.
+* **Resultado Esperado:**
+  * El sistema rechaza la creación (HTTP 403 Forbidden).
+  * En el modal aparece el mensaje de negocio:  
+    *«Has alcanzado el límite de 2 sucursales activas de tu Plan Básico. Actualiza a Plan Profesional para habilitar hasta 10 sucursales.»*
+  * La sucursal no se crea.
+
+---
+
+### Prueba 5: CU-05 y CU-07 — Consultar Suscripción y Cambiar de Plan (Upgrade)
+* **Objetivo:** Revisar el consumo del plan y realizar el upgrade a Plan Profesional para desbloquear más sucursales e IA.
+* **Pasos:**
+  1. En el menú lateral, ir a **General $\to$ Mi Suscripción** (`/admin/suscripcion`).
+  2. Verificar los indicadores en pantalla:
+     * **Plan Contratado:** `Plan Básico` (Badge `ACTIVA`, ciclo Mensual).
+     * **Consumo de Sucursales:** `2 / 2` (Barra al 100% con advertencia roja: *«Cupo de sucursales agotado»*).
+     * **Reportes Generativos con IA:** `NO INCLUIDA ✕` (Exclusivo Plan Pro).
+  3. Pulsar el botón superior **«Cambiar de Plan»**.
+  4. En el modal emergente:
+     * Seleccionar la opción **Plan Profesional** (Bs 450/mes, hasta 10 sucursales, con IA).
+     * Seleccionar ciclo `Anual`.
+     * Pulsar **«Confirmar Cambio de Plan»**.
+* **Resultado Esperado:**
+  * Aparece notificación verde: *«¡Plan actualizado con éxito al Plan Profesional!»*.
+  * La pantalla se actualiza en vivo:
+    * Plan Contratado: `Plan Profesional` (Ciclo Anual).
+    * Consumo de Sucursales: `2 / 10` (Barra verde: *«8 cupo(s) disponible(s)»*).
+    * Reportes Generativos con IA: `HABILITADA ★`.
+  5. Regresar a `/admin/sucursales`:
+     * El banner ahora dice: *«Consumo de Sucursales (Plan Profesional): 2 de 10 ocupadas — 8 cupos disponibles»*.
+     * Pulsar **«+ Nuevo»** y crear la `Sucursal Norte`. Ahora sí se crea exitosamente (3ª sucursal).
+
+---
+
+### Prueba 6: CU-05 — Regla de Downgrade Controlado (Rechazo por Exceso de Sucursales)
+* **Objetivo:** Demostrar que una empresa no puede bajar a un plan menor si excede sus límites.
+* **Pasos:**
+  1. Teniendo 3 sucursales activas en Boutique Luna (Plan Pro), ir a `/admin/suscripcion`.
+  2. Pulsar **«Cambiar de Plan»**.
+  3. Seleccionar **Plan Básico** (que solo admite 2 sucursales) y pulsar confirmar.
+* **Resultado Esperado:**
+  * El sistema rechaza el cambio (HTTP 400 Bad Request).
+  * En el modal aparece el error bloqueante:  
+    *«No puedes cambiar al Plan Básico porque tienes 3 sucursales activas y este plan permite un máximo de 2. Por favor desactiva 1 sucursal(es) antes de cambiar.»*
+
+---
+
+### Prueba 7: CU-06 — Catálogo de Planes en la API
+* **Objetivo:** Verificar la consulta de planes disponibles vía API REST.
+* **Pasos:**
+  1. Abrir en el navegador **`http://localhost:8000/docs`**.
+  2. Ir al tag **`0b. Suscripciones y Planes`** y desplegar `GET /api/suscripciones/planes`.
+  3. Pulsar **«Try it out»** y luego **«Execute»**.
+* **Resultado Esperado:**
+  * Código HTTP 200.
+  * Retorna la lista con `Plan Básico` (`limite_sucursales: 2`, `permite_ia_generativa: false`) y `Plan Profesional` (`limite_sucursales: 10`, `permite_ia_generativa: true`).
+
+---
+
+### Prueba 8: CU-08 — Gestionar Promociones y Descuentos
+* **Objetivo:** Verificar la creación de ofertas con control de no acumulación y aislamiento.
+* **Pasos:**
+  1. En el panel administrativo de Boutique Luna, ir a **Comercial $\to$ Promociones** (`/admin/promociones`).
+  2. Pulsar **«+ Nueva»**.
+  3. Ingresar:
+     * Nombre: `Descuento de Primavera`.
+     * Tipo: `Porcentaje`.
+     * Valor: `20` (20% de rebaja).
+     * Fecha inicio: Hoy.
+     * Fecha fin: En 15 días.
+  4. Guardar.
+* **Resultado Esperado:**
+  * La promoción se crea en estado `vigente`.
+  * Aplica únicamente para el catálogo de Boutique Luna, sin afectar a Confecciones Sol ni a otras tiendas.

@@ -18,16 +18,16 @@ El desarrollo se organiza en **3 presentaciones progresivas y equitativas**, don
 │   PRESENTACIÓN #1       │    PRESENTACIÓN #2       │   PRESENTACIÓN #3 (FINAL)   │
 │   SaaS Multitenant,     │    Operación Offline,    │   IA Generativa (Texto/Voz),│
 │   Suscripciones y       │    Sincronización,       │   Analítica Machine Learning│
-│   Persistencia Local    │    Conflictos y Cambios  │   y Despliegue Global       │
-│   (CU-01 al CU-08, 11)  │    (CU-09, 10, 12 al 18) │   (CU-19 al CU-21 + QA)     │
+│   Límites de Plan       │    Conflictos y Cambios  │   y Despliegue Global       │
+│   (CU-01 al CU-08)      │    (CU-09 al CU-18)      │   (CU-19 al CU-21 + QA)     │
 └─────────────────────────┴──────────────────────────┴─────────────────────────────┘
 ```
 
 ---
 
-## 2. Hito 1: Presentación #1 — Cimientos SaaS Multitenant, Suscripciones y Persistencia Local Inicial
+## 2. Hito 1: Presentación #1 — Cimientos SaaS Multitenant, Suscripciones y Límites de Plan
 
-**Objetivo del Hito:** Demostrar el aislamiento lógico de múltiples empresas en PostgreSQL, el control de límites por plan de suscripción y la descarga del catálogo para persistencia local en PWA y Móvil.
+**Objetivo del Hito:** Demostrar el aprovisionamiento de empresas contratantes, el aislamiento lógico de múltiples empresas en PostgreSQL a nivel ORM, el login con contexto de tenant, la administración de personal y el control de límites por plan de suscripción.
 
 ### Casos de Uso Cubiertos
 * **CU-01:** Registrar empresa contratante (Tenant)
@@ -38,27 +38,27 @@ El desarrollo se organiza en **3 presentaciones progresivas y equitativas**, don
 * **CU-06:** Administrar catálogo de planes (Básico y Profesional)
 * **CU-07:** Consultar estado, consumo y límites de suscripción
 * **CU-08:** Gestionar promociones y descuentos de prendas (Aporte propio)
-* **CU-11:** Descargar y almacenar catálogo local (PWA IndexedDB / Móvil SQLite)
 
 ### Reparto Equitativo de Tareas (Hito 1)
 
 | Área / Tarea | Integrante 1 (Junior) | Integrante 2 (Compañero) |
 |---|---|---|
-| **Backend & Base de Datos** | • Esquema de base de datos multitenant (`tenant`, `suscripcion`, `plan`, `usuario`).<br>• Middleware/Listener SQLAlchemy con filtro automático `WHERE tenant_id = scope.tenant_id`.<br>• Endpoints CU-01 al CU-07 (auth, suscripciones, sucursales con validación de límite).<br>• Endpoint de descarga de catálogo optimizado para persistencia local (CU-11). | • Apoyo en pruebas de endpoints y verificación de contratos OpenAPI (`/docs`). |
-| **Frontend PWA (Angular)** | • Configuración de interceptores HTTP para inyectar token y `tenant_id`. | • Pantalla de Login con código de tenant (CU-02).<br>• Módulo de administración de suscripción y límites (CU-07).<br>• Configuración del Service Worker inicial y Web App Manifest.<br>• Servicio de IndexedDB para almacenar catálogo localmente (CU-11). |
-| **App Móvil (Flutter)** | • Revisión de sincronización de modelos Dart con backend. | • Pantalla de Login móvil con contexto de tenant.<br>• Creación de base de datos local SQLite con `sqflite` (tablas de catálogo y stock).<br>• Rutina de descarga y guardado de catálogo en SQLite (CU-11). |
-| **Metodología ICONIX & Docs** | • Modelo de Dominio Multitenant.<br>• Diagrama de Robustez de Autenticación Multitenant (CU-02) y Registro de Tenant (CU-01). | • Diagrama de Casos de Uso del Paquete SaaS.<br>• Diagrama de Robustez de Descarga de Catálogo (CU-11).<br>• Diagrama de Secuencia de CU-04 (Límite de sucursales). |
-| **Pruebas Automatizadas** | • Test de aislamiento: usuario de Tenant A intentando leer recursos de Tenant B $\to$ HTTP 404/403.<br>• Test de límites: crear la 3ª sucursal en Plan Básico $\to$ Rechazo 403. | • Pruebas de almacenamiento y lectura en IndexedDB y SQLite. |
+| **Backend & Base de Datos** | • Esquema de base de datos multitenant (`tenant`, `suscripcion`, `plan`, `usuario`).<br>• Middleware/Listener SQLAlchemy con filtro automático `WHERE tenant_id = scope.tenant_id`.<br>• Endpoints CU-01 al CU-07 (auth con tenant, suscripciones, sucursales con validación de límite). | • Apoyo en pruebas de endpoints y verificación de contratos OpenAPI (`/docs`). |
+| **Frontend PWA (Angular)** | • Configuración de interceptores HTTP para inyectar token y `tenant_id`. | • Pantalla de Registro de Empresa (`/registro-empresa`, CU-01).<br>• Pantalla de Login con código de tenant (CU-02).<br>• Módulo de administración de suscripción y límites (CU-05, CU-07).<br>• Banner de límites de sucursales en panel (CU-04). |
+| **App Móvil (Flutter)** | • Revisión de sincronización de modelos Dart con backend. | • Pantalla de Login móvil con contexto de tenant (CU-02). |
+| **Metodología ICONIX & Docs** | • Modelo de Dominio Multitenant.<br>• Diagrama de Robustez de Autenticación Multitenant (CU-02) y Registro de Tenant (CU-01). | • Diagrama de Casos de Uso del Paquete SaaS.<br>• Diagrama de Secuencia de CU-04 (Límite de sucursales) y CU-05 (Cambio de plan). |
+| **Pruebas Automatizadas** | • Test de aislamiento: usuario de Tenant A intentando leer recursos de Tenant B $\to$ HTTP 404/403.<br>• Test de límites: crear la 3ª sucursal en Plan Básico $\to$ Rechazo 403. | • Pruebas de integración de login y cambio de plan en frontend. |
 
 ---
 
-## 3. Hito 2: Presentación #2 — Operación Offline, Motor de Sincronización, Conflictos y Cambios de Ropa
+## 3. Hito 2: Presentación #2 — Persistencia Local, Operación Offline, Sincronización y Cambios de Ropa
 
-**Objetivo del Hito:** Demostrar que tanto la PWA como la app Flutter registran ventas y reservas sin conexión a Internet, sincronizan por lotes con idempotencia, resuelven conflictos de stock y gestionan cambios de prendas.
+**Objetivo del Hito:** Demostrar la descarga del catálogo para persistencia local, que tanto la PWA como la app Flutter registran ventas y reservas sin conexión a Internet, sincronizan por lotes con idempotencia, resuelven conflictos de stock y gestionan cambios de prendas.
 
 ### Casos de Uso Cubiertos
 * **CU-09:** Cotizar y solicitar entrega a domicilio (Delivery Haversine - Aporte)
 * **CU-10:** Despachar y dar seguimiento a pedidos a domicilio (Aporte)
+* **CU-11:** Descargar y almacenar catálogo local (PWA IndexedDB / Móvil SQLite)
 * **CU-12:** Consultar catálogo y existencias en modo offline
 * **CU-13:** Registrar reserva de prendas sin conexión (Offline)
 * **CU-14:** Registrar venta de contado sin conexión (Offline)
@@ -71,11 +71,11 @@ El desarrollo se organiza en **3 presentaciones progresivas y equitativas**, don
 
 | Área / Tarea | Integrante 1 (Junior) | Integrante 2 (Compañero) |
 |---|---|---|
-| **Backend & Base de Datos** | • Endpoint de sincronización por lotes (`POST /api/sincronizacion/lote`).<br>• Mecanismo de idempotencia con `UNIQUE(tenant_id, uuid_operacion)`.<br>• Lógica de detección de conflictos: verificación de stock central al conciliar ventas offline.<br>• Módulo de cambios de prendas (CU-18) con validación de ventana temporal (ej. 30 días) y kardex.<br>• Adaptación de delivery (CU-09 y CU-10) al contexto multitenant. | • Soporte en validación de payloads JSON de sincronización. |
-| **Frontend PWA (Angular)** | • Revisión de consistencia transaccional del backend. | • Modo offline en PWA: detección de estado de red (`navigator.onLine`).<br>• Catálogo offline consultando IndexedDB con badge de datos desactualizados (CU-12).<br>• Registro local de venta en efectivo y reserva con generación de UUID (CU-13, CU-14).<br>• Bandeja de "Operaciones Pendientes de Sincronización" (CU-15).<br>• Disparador de sincronización automática al volver online (CU-16).<br>• Pantalla de cambios de prendas (CU-18). |
-| **App Móvil (Flutter)** | • Validación de consistencia de inventario en servidor. | • Catálogo offline leyendo de SQLite local (CU-12).<br>• Carrito de venta de contado offline en SQLite (CU-14).<br>• Tabla local de operaciones pendientes con estados (`LOCAL`, `ENVIADA`, `CONFIRMADA`, `EN_CONFLICTO`).<br>• Servicio de sincronización en Flutter con reintentos y consulta de resultados (CU-16). |
-| **Metodología ICONIX & Docs** | • Diagrama de Robustez de Sincronización y Resolución de Conflictos (CU-16, CU-17).<br>• Diagrama de Secuencia de Ventas Offline e Idempotencia. | • Diagrama de Robustez de Venta Contado Offline (CU-14) y Cambio de Prendas (CU-18).<br>• Diagrama de Comunicación de Sincronización Offline. |
-| **Pruebas Automatizadas** | • Test de idempotencia: reenvío del mismo `uuid_operacion` no duplica venta ni resta doble stock.<br>• Test de conflicto: venta offline supera stock central $\to$ marcado como `EN_CONFLICTO`.<br>• Test de plazo de cambio de prendas vencido $\to$ rechazo. | • Pruebas de persistencia offline tras reinicio de navegador y de app móvil. |
+| **Backend & Base de Datos** | • Endpoint de descarga de catálogo optimizado para persistencia local (CU-11).<br>• Endpoint de sincronización por lotes (`POST /api/sincronizacion/lote`).<br>• Mecanismo de idempotencia con `UNIQUE(tenant_id, uuid_operacion)`.<br>• Lógica de detección de conflictos: verificación de stock central al conciliar ventas offline.<br>• Módulo de cambios de prendas (CU-18) con validación de ventana temporal (ej. 30 días) y kardex.<br>• Adaptación de delivery (CU-09 y CU-10) al contexto multitenant. | • Soporte en validación de payloads JSON de sincronización. |
+| **Frontend PWA (Angular)** | • Revisión de consistencia transaccional del backend. | • Configuración de Service Worker y Web App Manifest.<br>• Servicio de IndexedDB para catálogo local (CU-11).<br>• Modo offline en PWA: detección de estado de red (`navigator.onLine`).<br>• Catálogo offline consultando IndexedDB con badge de datos desactualizados (CU-12).<br>• Registro local de venta en efectivo y reserva con generación de UUID (CU-13, CU-14).<br>• Bandeja de "Operaciones Pendientes de Sincronización" (CU-15).<br>• Disparador de sincronización automática al volver online (CU-16).<br>• Pantalla de cambios de prendas (CU-18). |
+| **App Móvil (Flutter)** | • Validación de consistencia de inventario en servidor. | • Creación de base de datos local SQLite con `sqflite` (CU-11).<br>• Catálogo offline leyendo de SQLite local (CU-12).<br>• Carrito de venta de contado offline en SQLite (CU-14).<br>• Tabla local de operaciones pendientes con estados (`LOCAL`, `ENVIADA`, `CONFIRMADA`, `EN_CONFLICTO`).<br>• Servicio de sincronización en Flutter con reintentos y consulta de resultados (CU-16). |
+| **Metodología ICONIX & Docs** | • Diagrama de Robustez de Sincronización y Resolución de Conflictos (CU-16, CU-17).<br>• Diagrama de Secuencia de Ventas Offline e Idempotencia. | • Diagrama de Robustez de Descarga de Catálogo (CU-11), Venta Contado Offline (CU-14) y Cambio de Prendas (CU-18).<br>• Diagrama de Comunicación de Sincronización Offline. |
+| **Pruebas Automatizadas** | • Test de idempotencia: reenvío del mismo `uuid_operacion` no duplica venta ni resta doble stock.<br>• Test de conflicto: venta offline supera stock central $\to$ marcado como `EN_CONFLICTO`.<br>• Test de plazo de cambio de prendas vencido $\to$ rechazo. | • Pruebas de almacenamiento, persistencia y lectura en IndexedDB y SQLite. |
 
 ---
 
