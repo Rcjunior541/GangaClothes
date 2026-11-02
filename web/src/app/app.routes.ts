@@ -208,6 +208,13 @@ export const routes: Routes = [
         data: { roles: ['administrador', 'cajero'] },
         loadComponent: () => import('./features/caja/caja').then((m) => m.Caja),
       },
+      {
+        path: 'sincronizacion',
+        canActivate: [rolGuard],
+        data: { roles: ['administrador', 'encargado', 'cajero'] },
+        loadComponent: () =>
+          import('./features/admin/sincronizacion/bandeja-pendientes').then((m) => m.BandejaPendientesComponent),
+      },
     ],
   },
   {

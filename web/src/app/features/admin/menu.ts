@@ -99,6 +99,12 @@ export const MENU: GrupoMenu[] = [
         disponible: true,
       },
       { etiqueta: 'Caja', ruta: '/admin/caja', roles: ['administrador', 'cajero'], disponible: true },
+      {
+        etiqueta: 'Sincronización Offline',
+        ruta: '/admin/sincronizacion',
+        roles: ['administrador', 'encargado', 'cajero'],
+        disponible: true,
+      },
     ],
   },
   {

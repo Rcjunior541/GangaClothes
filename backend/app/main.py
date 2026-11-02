@@ -23,6 +23,7 @@ from app.modules.proveedores.router import router as oferta_router
 from app.modules.ia.router import router as ia_router
 from app.modules.tenants.router import router as tenants_router
 from app.modules.suscripciones.router import router as suscripciones_router
+from app.modules.sincronizacion.router import router as sincronizacion_router
 
 # Mensajes propios (por ejemplo, si un correo no se pudo enviar) en la consola,
 # junto a los de uvicorn. En Render se ven en la pestana Logs.
@@ -88,6 +89,7 @@ app.include_router(oferta_router, prefix="/api/oferta", tags=["6c. Oferta del pr
 app.include_router(promociones_router, prefix="/api/promociones", tags=["10. Promociones (CU18)"])
 app.include_router(reportes_router, prefix="/api/reportes", tags=["11. Reportes y dashboard (CU19)"])
 app.include_router(ia_router, prefix="/api/ia", tags=["12. IA: recomendador y asistente (CU28)"])
+app.include_router(sincronizacion_router, prefix="/api/sincronizacion", tags=["13. Sincronizacion Offline (CU-16, CU-17)"])
 
 
 @app.get("/", tags=["raiz"])
