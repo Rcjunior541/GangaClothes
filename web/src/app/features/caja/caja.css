@@ -5,6 +5,57 @@
   flex-wrap: wrap;
   margin-bottom: 14px;
 }
+.banner-caja-offline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--sombra-sm);
+}
+.banner-caja-offline .texto-offline {
+  flex: 1;
+}
+.banner-caja-offline b {
+  display: block;
+  font-size: 13.5px;
+  color: #78350f;
+  margin-bottom: 2px;
+}
+.banner-caja-offline p {
+  margin: 0;
+  font-size: 12px;
+  color: #b45309;
+}
+.badge-pendientes {
+  background: #f59e0b;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.nota-offline-pago {
+  display: block;
+  color: #b45309;
+  font-size: 11.5px;
+  margin-top: 4px;
+}
+.aviso-offline-ticket {
+  background: #fef3c7;
+  border: 1px dashed #f59e0b;
+  color: #92400e;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 8px;
+}
 .titulo {
   display: flex;
   flex-direction: column;

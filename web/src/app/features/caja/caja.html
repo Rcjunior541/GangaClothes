@@ -21,6 +21,21 @@
     <p>No hay sucursales activas. Un administrador tiene que crear una en «Sucursales».</p>
   </div>
 } @else {
+  @if (!offline.online()) {
+    <div class="banner-caja-offline">
+      <span class="icono-alerta">📶</span>
+      <div class="texto-offline">
+        <b>Modo Offline — Punto de Venta Local Activo</b>
+        <p>Operando sin conexión. Las ventas se guardan en IndexedDB con UUID y solo se cobra en efectivo.</p>
+      </div>
+      @if (offline.operacionesPendientesCount() > 0) {
+        <span class="badge-pendientes">
+          {{ offline.operacionesPendientesCount() }} pendientes de sincronizar
+        </span>
+      }
+    </div>
+  }
+
   <div class="caja">
     <!-- ---------------------------------------------------------- la venta -->
     <section class="panel-venta" aria-label="Venta">
@@ -227,16 +242,22 @@
           }
         </div>
         <div class="acciones-comprobante">
-          <button type="button" class="btn rosa" (click)="comprobantes.imprimir(c.comprobante.venta_id)">
-            Imprimir comprobante
-          </button>
-          <button
-            type="button"
-            class="btn linea"
-            (click)="comprobantes.descargar(c.comprobante.venta_id, c.comprobante.nro_comprobante)"
-          >
-            Descargar PDF
-          </button>
+          @if (c.comprobante.venta_id > 0) {
+            <button type="button" class="btn rosa" (click)="comprobantes.imprimir(c.comprobante.venta_id)">
+              Imprimir comprobante
+            </button>
+            <button
+              type="button"
+              class="btn linea"
+              (click)="comprobantes.descargar(c.comprobante.venta_id, c.comprobante.nro_comprobante)"
+            >
+              Descargar PDF
+            </button>
+          } @else {
+            <div class="aviso-offline-ticket">
+              ⚠️ Comprobante local provisional. Se consolidará en el servidor central al sincronizar.
+            </div>
+          }
         </div>
         <button type="button" class="btn linea bloque" (click)="nuevaVenta()">Nueva venta</button>
       } @else {
@@ -280,7 +301,10 @@
         </div>
 
         <div class="ceja metodo-titulo">Metodo de pago</div>
-        <app-selector-estado [(valor)]="metodo" [opciones]="metodos" />
+        <app-selector-estado [(valor)]="metodo" [opciones]="metodosDisponibles()" />
+        @if (!offline.online()) {
+          <small class="nota-offline-pago">ℹ En modo offline solo se aceptan pagos en efectivo / contado.</small>
+        }
 
         @if (metodo() === 'efectivo') {
           <div>

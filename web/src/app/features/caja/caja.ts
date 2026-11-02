@@ -5,6 +5,7 @@ import { Observable, catchError, of, switchMap } from 'rxjs';
 import { API_URL } from '../../core/api';
 import { mensajeDeError } from '../../core/errores.interceptor';
 import { Notificaciones } from '../../core/notificaciones';
+import { IndexedDbService, VentaOffline } from '../../core/offline/indexed-db.service';
 import { SesionStore } from '../../core/sesion';
 import { SucursalActual } from '../../core/sucursal-actual';
 import { Comprobantes } from '../../shared/comprobante';
@@ -151,8 +152,15 @@ export class Caja {
   readonly sesion = inject(SesionStore);
   readonly comprobantes = inject(Comprobantes);
   readonly sucursal = inject(SucursalActual);
+  readonly offline = inject(IndexedDbService);
 
   readonly metodos = METODOS;
+  readonly metodosDisponibles = computed<OpcionFiltro<Metodo>[]>(() => {
+    if (!this.offline.online()) {
+      return [{ valor: 'efectivo', etiqueta: 'Efectivo (Contado)' }];
+    }
+    return METODOS;
+  });
   readonly moneda = moneda;
   readonly fechaCita = fechaSinZona;
   readonly fechaCobro = fechaLocal;
@@ -233,12 +241,28 @@ export class Caja {
       this.metodo();
       untracked(() => this.errorCobro.set(null));
     });
+    effect(() => {
+      // Si se detecta desconexión, forzar método a 'efectivo' y recargar desde IndexedDB si es necesario
+      if (!this.offline.online()) {
+        untracked(() => {
+          if (this.metodo() !== 'efectivo') this.metodo.set('efectivo');
+          if (this.catalogo().length === 0) this.cargarCatalogo();
+        });
+      }
+    });
   }
 
   // ------------------------------------------------------------------ carga
   cargarCatalogo(): void {
     this.cargandoCatalogo.set(true);
     this.errorCatalogo.set(null);
+
+    // Si estamos sin red (CU-14), cargar directamente desde la base local IndexedDB
+    if (!this.offline.online()) {
+      this.cargarCatalogoDesdeIndexedDB();
+      return;
+    }
+
     this.http.get<PrendaCatalogo[]>(`${API_URL}/prendas/catalogo-interno`).subscribe({
       next: (prendas) => {
         const variantes = prendas.flatMap((p) =>
@@ -260,11 +284,46 @@ export class Caja {
         this.lineas.update((lineas) => lineas.map((l) => ({ ...l, variante: porId.get(l.variante.id) ?? l.variante })));
         this.cargandoCatalogo.set(false);
       },
-      error: (err) => {
-        this.errorCatalogo.set(mensajeDeError(err, 'No se pudo cargar el catalogo de prendas.'));
-        this.cargandoCatalogo.set(false);
+      error: async (err) => {
+        // Fallback offline a IndexedDB si falla la red
+        const recuperado = await this.cargarCatalogoDesdeIndexedDB();
+        if (!recuperado) {
+          this.errorCatalogo.set(mensajeDeError(err, 'No se pudo cargar el catalogo de prendas.'));
+          this.cargandoCatalogo.set(false);
+        }
       },
     });
+  }
+
+  async cargarCatalogoDesdeIndexedDB(): Promise<boolean> {
+    try {
+      const prendas = await this.offline.obtenerCatalogoLocal();
+      if (prendas && prendas.length > 0) {
+        const sucursalId = this.sucursal.id() ?? 0;
+        const variantes = prendas.flatMap((p: any) =>
+          (p.variantes || []).map((v: any) => ({
+            id: v.id,
+            sku: v.sku,
+            prenda: p.nombre,
+            talla: v.talla ?? '—',
+            color: v.color ?? '—',
+            precio: Number(p.precio_final ?? p.precio_venta),
+            precioLista: Number(p.precio_venta),
+            promocion: p.promocion ?? null,
+            disponibilidad: v.disponibilidad || [
+              { sucursal_id: sucursalId, disponible: v.disponible ?? 10 },
+            ],
+          })),
+        );
+        this.catalogo.set(variantes);
+        const porId = new Map(variantes.map((v) => [v.id, v]));
+        this.lineas.update((lineas) => lineas.map((l) => ({ ...l, variante: porId.get(l.variante.id) ?? l.variante })));
+        this.cargandoCatalogo.set(false);
+        this.errorCatalogo.set(null);
+        return true;
+      }
+    } catch {}
+    return false;
   }
 
   cargarReservas(sucursalId: number | null = this.sucursal.id()): void {
@@ -352,6 +411,21 @@ export class Caja {
     const metodo = this.metodo();
     const recibido = this.montoRecibido();
     const nombreSucursal = this.sucursal.actual()?.nombre ?? 'la sucursal';
+
+    // CU-14: Operación de Cobro Offline en Mostrador (Efectivo y guardado en IndexedDB con UUID)
+    if (!this.offline.online()) {
+      if (metodo !== 'efectivo') {
+        this.errorCobro.set({
+          titulo: 'Pago no permitido',
+          detalle: 'En modo sin conexión (offline) solo se admiten cobros en efectivo / contado.',
+        });
+        return;
+      }
+      this.cobrando.set(true);
+      this.cobrarOffline(sucursalId, recibido ?? this.total(), nombreSucursal);
+      return;
+    }
+
     this.cobrando.set(true);
     this.errorCobro.set(null);
 
@@ -407,6 +481,81 @@ export class Caja {
           if (/stock|unidades libres/i.test(detalle)) this.cargarCatalogo();
         },
       });
+  }
+
+  private async cobrarOffline(sucursalId: number, recibido: number, nombreSucursal: string): Promise<void> {
+    const uuid = crypto.randomUUID();
+    const fecha = new Date().toISOString();
+    const items = this.lineas().map((l) => ({
+      variante_id: l.variante.id,
+      sku: l.variante.sku,
+      prenda_nombre: l.variante.prenda,
+      talla: l.variante.talla,
+      color: l.variante.color,
+      cantidad: l.cantidad,
+      precio_unitario: l.variante.precio,
+      descuento: Math.max(0, l.variante.precioLista - l.variante.precio),
+      subtotal: l.variante.precio * l.cantidad,
+    }));
+
+    const subtotal = centavos(this.lineas().reduce((s, l) => s + l.variante.precioLista * l.cantidad, 0));
+
+    const ventaOffline: VentaOffline = {
+      uuid_operacion: uuid,
+      tipo: 'venta',
+      sucursal_id: sucursalId,
+      sucursal_nombre: nombreSucursal,
+      cajero_nombre: this.sesion.nombreCompleto(),
+      cajero_id: this.sesion.usuario()?.id ?? null,
+      fecha_hora: fecha,
+      total: this.total(),
+      subtotal,
+      descuento: this.descuento(),
+      metodo_pago: 'efectivo',
+      monto_recibido: recibido,
+      cambio: this.cambio() ?? 0,
+      items,
+      estado: 'LOCAL',
+    };
+
+    await this.offline.guardarVentaOffline(ventaOffline);
+    this.cobrando.set(false);
+    this.ventaPendiente = null;
+
+    const comprobanteOffline: Comprobante = {
+      nro_comprobante: `OFFLINE-${uuid.substring(0, 8).toUpperCase()}`,
+      fecha,
+      sucursal: { nombre: nombreSucursal, direccion: null },
+      venta_id: 0,
+      reserva_id: null,
+      cajero: { nombre: this.sesion.nombreCompleto() },
+      cliente: null,
+      items: items.map((i) => ({
+        descripcion: `${i.prenda_nombre} · ${i.talla} / ${i.color}`,
+        sku: i.sku,
+        cantidad: i.cantidad,
+        precio_unitario: i.precio_unitario,
+        descuento: i.descuento,
+        promocion: i.descuento > 0 ? 'Promo Local' : null,
+        subtotal: i.subtotal,
+      })),
+      subtotal,
+      descuento: this.descuento(),
+      total: this.total(),
+      pago: { metodo: 'efectivo', recibido, cambio: this.cambio() ?? 0 },
+    };
+
+    const unidades = this.unidades();
+    this.cobro.set({
+      comprobante: comprobanteOffline,
+      unidades,
+      reservaAtendida: null,
+    });
+
+    this.avisos.ok(
+      `✓ Venta registrada localmente (OFFLINE). ID: ${uuid.substring(0, 8)}. Pendiente de sincronizar.`,
+    );
+    this.cargarCatalogo();
   }
 
   nuevaVenta(): void {
