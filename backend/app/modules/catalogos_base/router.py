@@ -5,8 +5,9 @@ from fastapi import APIRouter
 
 from app.models.catalogo import Categoria, Coleccion, Color, Talla, Temporada
 from app.models.inventario import Proveedor
-from app.models.sucursales import Ciudad, Sucursal
+from app.models.sucursales import Ciudad
 from app.modules.comunes import crud_router
+from app.modules.sucursales.router import router as sucursales_router
 
 router = APIRouter()
 
@@ -25,13 +26,8 @@ router.include_router(crud_router(Coleccion, "coleccion", {
 router.include_router(crud_router(Ciudad, "ciudad", {
     "nombre": (str, ...), "departamento": (str | None, None)},
     modulo="SUCURSALES"), prefix="/ciudades")
-# latitud/longitud: el punto del mapa desde el que sale el delivery (CU29).
-# Sin ellas la sucursal funciona igual, pero solo ofrece retiro en sucursal.
-router.include_router(crud_router(Sucursal, "sucursal", {
-    "ciudad_id": (int, ...), "nombre": (str, ...), "direccion": (str | None, None),
-    "telefono": (str | None, None), "horario": (str | None, None),
-    "latitud": (float | None, None), "longitud": (float | None, None)},
-    modulo="SUCURSALES"), prefix="/sucursales")
+# CU-04: Módulo de Sucursales con aislamiento multitenant y validación de límite de plan
+router.include_router(sucursales_router, prefix="/sucursales")
 router.include_router(crud_router(Proveedor, "proveedor", {
     "nombre": (str, ...), "nit": (str | None, None), "contacto": (str | None, None),
     "telefono": (str | None, None), "email": (str | None, None),

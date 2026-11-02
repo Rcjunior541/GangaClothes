@@ -21,6 +21,24 @@
   <button type="button" class="btn rosa" (click)="abrirNuevo()">+ Nuevo</button>
 </div>
 
+@if (limiteSucursales(); as lim) {
+  <div class="banner-plan-sucursal" style="background: #f8fafc; border-left: 4px solid #4f46e5; border-radius: 8px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+    <div>
+      <span style="font-size: 0.85rem; color: #475569;">Consumo de Sucursales ({{ lim.plan_nombre }}):</span>
+      <strong style="margin-left: 0.4rem; color: #1e293b;">{{ lim.sucursales_activas }} de {{ lim.limite_plan }} ocupadas</strong>
+    </div>
+    @if (!lim.puede_crear) {
+      <span style="background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.8rem;">
+        Cupo de plan agotado
+      </span>
+    } @else {
+      <span style="background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.8rem;">
+        {{ lim.disponibles }} cupo(s) disponible(s)
+      </span>
+    }
+  </div>
+}
+
 <!-- --------------------------------------------------------------- tabla -->
 @if (cargando()) {
   <p class="mensaje">Cargando…</p>

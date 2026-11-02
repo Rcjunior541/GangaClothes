@@ -1,8 +1,10 @@
 import { TitleCasePipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 
+import { API_URL } from '../../core/api';
 import { mensajeDeError } from '../../core/errores.interceptor';
 import { Notificaciones } from '../../core/notificaciones';
 import { RecursoService, Registro } from '../../core/recurso.service';
@@ -34,8 +36,17 @@ export class Crud {
   readonly config = input.required<ConfigCrud>();
 
   private fb = inject(FormBuilder);
+  private http = inject(HttpClient);
   private recursos = inject(RecursoService);
   private avisos = inject(Notificaciones);
+
+  readonly limiteSucursales = signal<{
+    sucursales_activas: number;
+    limite_plan: number;
+    disponibles: number;
+    puede_crear: boolean;
+    plan_nombre: string;
+  } | null>(null);
 
   // ---- listado ----
   readonly filas = signal<Registro[]>([]);
@@ -141,7 +152,18 @@ export class Crud {
   cargar(): void {
     this.cargando.set(true);
     this.errorCarga.set(null);
-    this.recursos.listar(this.config().ruta).subscribe({
+    const ruta = this.config().ruta;
+
+    if (ruta === 'admin/sucursales') {
+      this.http.get<any>(`${API_URL}/admin/sucursales/limite`).subscribe({
+        next: (lim) => this.limiteSucursales.set(lim),
+        error: () => this.limiteSucursales.set(null),
+      });
+    } else {
+      this.limiteSucursales.set(null);
+    }
+
+    this.recursos.listar(ruta).subscribe({
       next: (filas) => {
         this.filas.set(filas);
         this.cargando.set(false);
