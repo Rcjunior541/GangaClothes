@@ -30,6 +30,9 @@
     <header class="superior">
       <div class="yo">
         <b>{{ sesion.nombreCompleto() }}</b> · {{ sesion.rolPrincipal() }}
+        @if (sesion.nombreEmpresa()) {
+          · <span class="badge-empresa" style="background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.8rem;">{{ sesion.nombreEmpresa() }}</span>
+        }
       </div>
       <button type="button" class="btn linea salir" (click)="salir()">Cerrar sesion</button>
     </header>

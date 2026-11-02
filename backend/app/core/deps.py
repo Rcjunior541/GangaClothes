@@ -26,10 +26,21 @@ def get_current_user(
         payload = decode_token(cred.credentials)
     except Exception:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token invalido o expirado")
+    tenant_id = payload.get("tenant_id")
+    kind = payload.get("kind", "tenant")
+
+    # Inyectar o limpiar el scope de tenant en la sesión para el aislamiento automático en el ORM
+    if kind != "super" and tenant_id is not None:
+        db.info["tenant_scope"] = tenant_id
+    else:
+        db.info.pop("tenant_scope", None)
+
     usuario = db.get(Usuario, int(payload["sub"]))
     if usuario is None or not usuario.activo:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Usuario inactivo")
     usuario.roles_token = payload.get("roles", [])
+    usuario.tenant_id_token = tenant_id
+    usuario.kind_token = kind
     return usuario
 
 

@@ -37,13 +37,14 @@ export class Login {
   readonly error = signal<string | null>(null);
 
   readonly formulario = this.fb.nonNullable.group({
-    // Viene rellenado al volver de "recuperar contrasena".
+    codigo_tenant: [this.ruta.snapshot.queryParamMap.get('tenant') ?? ''],
+    // Viene rellenado al volver de "recuperar contrasena" o de registrar empresa.
     email: [this.ruta.snapshot.queryParamMap.get('email') ?? '', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
   usar(cuenta: CuentaDemo): void {
-    this.formulario.setValue({ email: cuenta.email, password: cuenta.password });
+    this.formulario.setValue({ codigo_tenant: '', email: cuenta.email, password: cuenta.password });
   }
 
   /** Lleva el correo ya escrito a la pantalla de recuperacion. */
@@ -64,9 +65,9 @@ export class Login {
       return;
     }
 
-    const { email, password } = this.formulario.getRawValue();
+    const { codigo_tenant, email, password } = this.formulario.getRawValue();
     this.enviando.set(true);
-    this.auth.login(email, password).subscribe({
+    this.auth.login(email, password, codigo_tenant).subscribe({
       next: () => {
         this.enviando.set(false);
         const volverA = this.ruta.snapshot.queryParamMap.get('volverA');

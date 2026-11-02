@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy import Column, ForeignKey, Integer, create_engine, event
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker, with_loader_criteria
 
 from app.core.config import settings
 
@@ -25,6 +25,40 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 class Base(DeclarativeBase):
     pass
+
+
+class TenantMixin:
+    """Mixin para modelos de datos que pertenecen lógicamente a un Tenant."""
+
+    tenant_id = Column(
+        Integer, ForeignKey("tenant.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+
+
+@event.listens_for(Session, "do_orm_execute")
+def _aislamiento_multitenant(execute_state):
+    """Garantiza aislamiento lógico por tenant en el motor del ORM.
+
+    Si session.info['tenant_scope'] está definido, inyecta automáticamente
+    la cláusula 'WHERE tenant_id = :scope' en todas las consultas SELECT, UPDATE y DELETE
+    sobre modelos que hereden de TenantMixin.
+    """
+    if (
+        not execute_state.is_select
+        and not execute_state.is_update
+        and not execute_state.is_delete
+    ):
+        return
+    session = execute_state.session
+    tenant_scope = session.info.get("tenant_scope")
+    if tenant_scope is not None:
+        execute_state.statement = execute_state.statement.options(
+            with_loader_criteria(
+                TenantMixin,
+                lambda cls: cls.tenant_id == tenant_scope,
+                include_aliases=True,
+            )
+        )
 
 
 def to_dict(obj):

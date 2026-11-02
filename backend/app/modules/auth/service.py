@@ -2,7 +2,7 @@ import hashlib
 import hmac
 import logging
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException
 from sqlalchemy import func, update
@@ -14,6 +14,8 @@ from app.core.config import settings
 from app.core.contrasenas import exigir_segura
 from app.core.security import hash_password, verify_password
 from app.models.seguridad import RecuperacionContrasena
+from app.models.suscripcion import Suscripcion
+from app.models.tenant import Tenant
 from app.models.usuarios import Cliente, Rol, Usuario, UsuarioRol
 
 log = logging.getLogger("gangaclothes.auth")
@@ -83,15 +85,70 @@ def registrar_cliente(db: Session, datos) -> Usuario:
     return usuario
 
 
-def autenticar(db: Session, email: str, password: str) -> Usuario:
-    usuario = _por_email(db, email)
-    if usuario is None or not verify_password(password, usuario.password_hash):
-        raise HTTPException(401, "Correo o contrasena incorrectos")
-    if not usuario.activo:
-        raise HTTPException(401, "Usuario inactivo")
-    usuario.ultimo_acceso = datetime.utcnow()
-    db.commit()
-    return usuario
+def autenticar(db: Session, email: str, password: str, codigo_tenant: str | None = None) -> tuple[Usuario, Tenant | None]:
+    """CU-02: Autenticar usuario con contexto de Tenant.
+    
+    Si se proporciona codigo_tenant:
+      - Valida que la empresa exista y esté activa.
+      - Valida que la suscripción de la empresa no se encuentre vencida o cancelada.
+      - Busca al usuario perteneciente a ese tenant y valida credenciales.
+    Si no se proporciona codigo_tenant:
+      - Busca usuarios sin tenant (cuentas de superadmin o globales).
+    """
+    email_limpio = email.strip().lower()
+
+    if codigo_tenant:
+        tenant = db.query(Tenant).filter(Tenant.codigo == codigo_tenant.strip().lower()).first()
+        if tenant is None:
+            raise HTTPException(404, f"No existe ninguna empresa registrada con el código '{codigo_tenant}'")
+        if not tenant.activo:
+            raise HTTPException(403, f"La empresa '{tenant.nombre}' se encuentra inactiva o suspendida")
+
+        # Verificar suscripción
+        suscripcion = db.query(Suscripcion).filter(Suscripcion.tenant_id == tenant.id).first()
+        if suscripcion:
+            if suscripcion.fecha_vencimiento:
+                ahora = datetime.now(timezone.utc)
+                vence = suscripcion.fecha_vencimiento
+                if vence.tzinfo is None:
+                    vence = vence.replace(tzinfo=timezone.utc)
+                if ahora > vence:
+                    suscripcion.estado = "vencida"
+                    db.commit()
+                    raise HTTPException(403, "La suscripción de la empresa ha vencido. Por favor renueva tu plan para acceder.")
+            if suscripcion.estado != "activa":
+                raise HTTPException(403, f"La suscripción de la empresa se encuentra {suscripcion.estado}. Contacta a soporte.")
+
+        # Buscar usuario en ese tenant
+        usuario = db.query(Usuario).filter(Usuario.tenant_id == tenant.id, func.lower(Usuario.email) == email_limpio).first()
+        if usuario is None or not verify_password(password, usuario.password_hash):
+            raise HTTPException(401, f"Correo o contraseña incorrectos para la empresa '{tenant.nombre}'")
+        if not usuario.activo:
+            raise HTTPException(401, "Usuario inactivo")
+
+        usuario.ultimo_acceso = datetime.now(timezone.utc)
+        db.commit()
+        return usuario, tenant
+
+    # Sin código de tenant: busca usuarios globales (sin tenant_id)
+    usuario = db.query(Usuario).filter(Usuario.tenant_id.is_(None), func.lower(Usuario.email) == email_limpio).first()
+    if usuario and verify_password(password, usuario.password_hash):
+        if not usuario.activo:
+            raise HTTPException(401, "Usuario inactivo")
+        usuario.ultimo_acceso = datetime.now(timezone.utc)
+        db.commit()
+        return usuario, None
+
+    # Si no se encontró sin tenant, verificar si pertenece a un tenant para orientar al usuario
+    usuario_tenant = db.query(Usuario).filter(func.lower(Usuario.email) == email_limpio, Usuario.tenant_id.isnot(None)).first()
+    if usuario_tenant and usuario_tenant.tenant:
+        raise HTTPException(
+            400,
+            f"Esta cuenta pertenece a la empresa '{usuario_tenant.tenant.nombre}'. "
+            f"Por favor ingresa con el código de empresa '{usuario_tenant.tenant.codigo}'.",
+        )
+
+    raise HTTPException(401, "Correo o contraseña incorrectos")
 
 
 # ------------------------------------------------- recuperar contrasena

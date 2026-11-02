@@ -10,15 +10,29 @@ from app.modules.auth.schemas import (LoginIn, RecuperarIn, RegisterIn, Restable
 router = APIRouter()
 
 
-def _token_out(db, usuario) -> TokenOut:
+def _token_out(db, usuario, tenant=None) -> TokenOut:
     roles = service.obtener_roles(db, usuario.id)
+    t = tenant or getattr(usuario, "tenant", None)
+    tenant_id = t.id if t else getattr(usuario, "tenant_id", None)
+    codigo_tenant = t.codigo if t else None
+    nombre_empresa = t.nombre if t else None
+    kind = "tenant" if tenant_id is not None else "super"
+
     return TokenOut(
-        access_token=create_token(usuario.id, roles),
+        access_token=create_token(usuario.id, roles, tenant_id=tenant_id, kind=kind),
         usuario=UsuarioOut(
-            id=usuario.id, nombre=usuario.nombre, apellido=usuario.apellido,
-            email=usuario.email, roles=roles,
+            id=usuario.id,
+            nombre=usuario.nombre,
+            apellido=usuario.apellido,
+            email=usuario.email,
+            roles=roles,
             permisos=sorted(permisos_de(db, usuario.id)),
+            tenant_id=tenant_id,
+            codigo_tenant=codigo_tenant,
+            nombre_empresa=nombre_empresa,
         ),
+        tenant_id=tenant_id,
+        codigo_tenant=codigo_tenant,
     )
 
 
@@ -28,13 +42,15 @@ def register(datos: RegisterIn, db=Depends(get_db)):
     return _token_out(db, usuario)
 
 
-@router.post("/login", response_model=TokenOut, summary="CU1 / CU20: iniciar sesion")
+@router.post("/login", response_model=TokenOut, summary="CU-02: iniciar sesión con contexto de Tenant")
 def login(datos: LoginIn, peticion: Request, db=Depends(get_db)):
-    usuario = service.autenticar(db, datos.email, datos.password)
-    salida = _token_out(db, usuario)
+    usuario, tenant = service.autenticar(db, datos.email, datos.password, datos.codigo_tenant)
+    salida = _token_out(db, usuario, tenant)
+    detalle = f"Inicio de sesion como {', '.join(salida.usuario.roles) or 'sin rol'}"
+    if tenant:
+        detalle += f" en empresa '{tenant.nombre}' ({tenant.codigo})"
     registrar(db, modulo="SESION", accion="INGRESO", usuario=usuario, peticion=peticion,
-              entidad="usuario", entidad_id=usuario.id,
-              detalle=f"Inicio de sesion como {', '.join(salida.usuario.roles) or 'sin rol'}")
+              entidad="usuario", entidad_id=usuario.id, detalle=detalle)
     return salida
 
 
@@ -76,8 +92,15 @@ def logout(peticion: Request, usuario=Depends(get_current_user), db=Depends(get_
 
 @router.get("/me", response_model=UsuarioOut, summary="Usuario autenticado actual")
 def me(usuario=Depends(get_current_user), db=Depends(get_db)):
+    t = getattr(usuario, "tenant", None)
     return UsuarioOut(
-        id=usuario.id, nombre=usuario.nombre, apellido=usuario.apellido,
-        email=usuario.email, roles=service.obtener_roles(db, usuario.id),
+        id=usuario.id,
+        nombre=usuario.nombre,
+        apellido=usuario.apellido,
+        email=usuario.email,
+        roles=service.obtener_roles(db, usuario.id),
         permisos=sorted(permisos_de(db, usuario.id)),
+        tenant_id=usuario.tenant_id,
+        codigo_tenant=t.codigo if t else None,
+        nombre_empresa=t.nombre if t else None,
     )

@@ -6,6 +6,9 @@ class User {
     required this.email,
     this.roles = const [],
     this.permissions = const [],
+    this.tenantId,
+    this.tenantCode,
+    this.companyName,
   });
 
   final int id;
@@ -14,6 +17,9 @@ class User {
   final String email;
   final List<String> roles;
   final List<String> permissions;
+  final int? tenantId;
+  final String? tenantCode;
+  final String? companyName;
 
   factory User.fromJson(Map<String, dynamic> json) {
     final id = _intValue(json['id']);
@@ -30,6 +36,9 @@ class User {
       email: email,
       roles: _stringList(json['roles']),
       permissions: _stringList(json['permisos']),
+      tenantId: _intValue(json['tenant_id']),
+      tenantCode: json['codigo_tenant'] as String?,
+      companyName: json['nombre_empresa'] as String?,
     );
   }
 
@@ -40,6 +49,9 @@ class User {
     'email': email,
     'roles': roles,
     'permisos': permissions,
+    if (tenantId != null) 'tenant_id': tenantId,
+    if (tenantCode != null) 'codigo_tenant': tenantCode,
+    if (companyName != null) 'nombre_empresa': companyName,
   };
 
   String get fullName => [name, lastName].whereType<String>().join(' ');

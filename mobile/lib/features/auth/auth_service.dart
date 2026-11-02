@@ -64,11 +64,17 @@ class AuthService {
   final ApiClient apiClient;
   final SessionStorage sessionStorage;
 
-  Future<Session> login(String email, String password) async {
+  Future<Session> login(String email, String password, {String? tenantCode}) async {
+    final payload = <String, dynamic>{
+      'email': email,
+      'password': password,
+      if (tenantCode != null && tenantCode.trim().isNotEmpty)
+        'codigo_tenant': tenantCode.trim().toLowerCase(),
+    };
     final response = await apiClient.request<Map<String, dynamic>>(
       '/auth/login',
       method: 'POST',
-      data: {'email': email, 'password': password},
+      data: payload,
     );
     final session = Session.fromJson(_map(response.data));
     await sessionStorage.saveSession(session);

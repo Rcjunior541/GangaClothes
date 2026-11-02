@@ -17,10 +17,17 @@ def verify_password(password: str, password_hash: str) -> bool:
         return False
 
 
-def create_token(usuario_id: int, roles: list[str]) -> str:
+def create_token(
+    usuario_id: int,
+    roles: list[str],
+    tenant_id: int | None = None,
+    kind: str = "tenant",
+) -> str:
     payload = {
         "sub": str(usuario_id),
         "roles": roles,
+        "tenant_id": tenant_id,
+        "kind": kind,
         "exp": datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes),
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_alg)

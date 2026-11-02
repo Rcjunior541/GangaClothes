@@ -9,6 +9,10 @@ export interface Usuario {
   roles: string[];
   /** Permisos que le llegan por sus roles, en formato "modulo:accion". */
   permisos: string[];
+  /** Contexto de SaaS Multitenant */
+  tenant_id?: number | null;
+  codigo_tenant?: string | null;
+  nombre_empresa?: string | null;
   /**
    * Sucursal asignada al personal. El backend todavia no la envia; cuando lo
    * haga, las pantallas de operacion la preseleccionan (ver SucursalActual).
@@ -20,4 +24,6 @@ export interface SesionRespuesta {
   access_token: string;
   token_type: string;
   usuario: Usuario;
+  tenant_id?: number | null;
+  codigo_tenant?: string | null;
 }

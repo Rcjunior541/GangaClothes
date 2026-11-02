@@ -30,6 +30,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _tenantCode;
   late final TextEditingController _email;
   late final TextEditingController _password;
   bool _submitting = false;
@@ -38,12 +39,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    _tenantCode = TextEditingController();
     _email = TextEditingController(text: widget.initialEmail ?? '');
     _password = TextEditingController();
   }
 
   @override
   void dispose() {
+    _tenantCode.dispose();
     _email.dispose();
     _password.dispose();
     super.dispose();
@@ -59,6 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final session = await widget.authService.login(
         _email.text.trim(),
         _password.text,
+        tenantCode: _tenantCode.text.trim(),
       );
       widget.onSessionChanged?.call(session);
       if (!mounted) return;
@@ -105,6 +109,14 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            GcField(
+              label: 'Código de Empresa (Opcional)',
+              hint: 'ej: boutique-luna (solo tiendas)',
+              controller: _tenantCode,
+              enabled: !_submitting,
+              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 14),
             GcField(
               label: 'Correo electrónico',
               hint: 'tu@correo.com',

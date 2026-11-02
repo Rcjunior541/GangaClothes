@@ -57,6 +57,9 @@ def aplicar(engine) -> None:
         _columna_nueva(conexion, "sucursal", "longitud", "FLOAT")
         _columna_nueva(conexion, "venta", "tipo_entrega", "VARCHAR(15)")
         _columna_nueva(conexion, "venta", "costo_envio", "NUMERIC(12, 2)")
+        # Parcial 2 (SaaS Multitenant): soporte de tenant_id en usuario y sucursal
+        _columna_nueva(conexion, "usuario", "tenant_id", "INTEGER REFERENCES tenant(id)")
+        _columna_nueva(conexion, "sucursal", "tenant_id", "INTEGER REFERENCES tenant(id)")
         # Las ventas anteriores al delivery se retiraban todas en sucursal.
         if inspect(conexion).has_table("venta"):
             conexion.execute(text(

@@ -13,6 +13,7 @@ class RegisterIn(BaseModel):
 
 
 class LoginIn(BaseModel):
+    codigo_tenant: str | None = Field(default=None, description="Código de la empresa (obligatorio para empleados de tenant)")
     email: EmailStr
     password: str
 
@@ -35,9 +36,14 @@ class UsuarioOut(BaseModel):
     roles: list[str]
     # Permisos que le llegan por sus roles; la web los usa para saber que puede hacer.
     permisos: list[str] = []
+    tenant_id: int | None = None
+    codigo_tenant: str | None = None
+    nombre_empresa: str | None = None
 
 
 class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"
     usuario: UsuarioOut
+    tenant_id: int | None = None
+    codigo_tenant: str | None = None
