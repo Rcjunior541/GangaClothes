@@ -2,7 +2,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.core.auditoria import registrar
@@ -22,7 +22,7 @@ from app.modules.ventas import service as ventas
 
 
 def procesar_lote_offline(
-    db: Session, usuario: Usuario, datos: SincronizacionLoteIn, ip_origen: str | None = None
+    db: Session, usuario: Usuario, datos: SincronizacionLoteIn, peticion: Request | None = None
 ) -> SincronizacionLoteOut:
     """Procesa un conjunto de ventas o reservas generadas sin conexión, aplicando
     idempotencia por UUID y detectando conflictos de existencias (CU-16, CU-17)."""
@@ -180,19 +180,18 @@ def procesar_lote_offline(
             confirmadas += 1
 
             # Registrar en bitácora
-            actor_txt = f"{usuario.nombre} <{usuario.email}>"
             registrar(
                 db,
                 modulo="SINCRONIZACION",
                 accion="LOTE",
                 usuario=usuario,
+                peticion=peticion,
                 entidad="venta",
                 entidad_id=venta.id,
                 detalle=(
                     f"Consolidación offline de venta #{venta.id} (Comprobante: {resultado_pago['nro_comprobante']}, "
                     f"UUID: {op.uuid_operacion}) en sucursal '{sucursal.nombre}'"
                 ),
-                ip=ip_origen,
             )
 
         except Exception as e:

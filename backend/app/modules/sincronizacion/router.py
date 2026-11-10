@@ -23,5 +23,4 @@ def sincronizar_lote(
 ):
     """Recibe la cola de ventas y reservas generadas sin conexión, aplicando
     idempotencia por UUID y validando existencias reales del inventario central."""
-    ip = request.client.host if request.client else None
-    return service.procesar_lote_offline(db, usuario, datos, ip_origen=ip)
+    return service.procesar_lote_offline(db, usuario, datos, peticion=request)
