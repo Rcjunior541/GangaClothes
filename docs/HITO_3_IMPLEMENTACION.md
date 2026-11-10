@@ -155,3 +155,93 @@ Con los cimientos multitenant del **Hito 1** y la operación offline/sincronizac
 * **Qué y dónde editar:**
   * Backend: Endpoints de consulta analítica en `app/modules/ml/router.py`.
   * Frontend: Componente de dashboard en `src/app/features/reportes/dashboard-ml/dashboard-ml.{ts,html,css}`.
+
+---
+
+# 3. Guía de Pruebas Paso a Paso con Credenciales (Defensa Hito 3)
+
+A continuación se detalla la matriz de credenciales y el procedimiento exacto paso a paso para ejecutar y defender la **Inteligencia Artificial Generativa (CU-19)** y el **Pipeline de Machine Learning (CU-20 y CU-21)** ante el tribunal evaluador.
+
+---
+
+### A. Tabla de Credenciales de Demostración para el Hito 3
+
+| Empresa / Cuenta | Código Tenant | Correo Electrónico | Contraseña | Plan de Suscripción | Rol en las Pruebas del Hito 3 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **GangaClothes SRL** | `gangaclothes` | `admin@gangaclothes.com` | `Admin123!` | **Plan Profesional** (`permite_ia = True`) | Generar reportes por texto y voz (**CU-19**), exportar Excel/PDF y ver Dashboard ML (**CU-21**). |
+| **Boutique Luna SRL** | `luna` | `admin@luna.com` | `Luna123!` | **Plan Básico** (`permite_ia = False`) | Demostrar el **bloqueo comercial por suscripción** en CU-19 (HTTP 403 y tarjeta de upgrade). |
+| **Superadministrador** | *(vacío)* | `superadmin@fashionstore.com` | `SuperAdmin123!` | Global (sin tenant) | Administrar planes SaaS y monitorear empresas. |
+
+---
+
+### B. Pasos para Probar Cada Caso de Uso
+
+---
+
+#### 1. Prueba de CU-19: Reportes Generativos con IA (Texto y Voz) y Exportación
+
+**Objetivo:** Demostrar que el sistema orquesta con Inteligencia Artificial consultas en lenguaje natural, redacta síntesis ejecutivas, genera gráficos dinámicos y exporta a Excel contable y PDF formal.
+
+1. **Paso 1 (Iniciar sesión con Plan Profesional):**
+   * Entra a `http://localhost:4201/login` y pulsa el chip rápido **`admin (GangaClothes)`** (`admin@gangaclothes.com` / `Admin123!`).
+2. **Paso 2 (Navegar a Reportes IA):**
+   * En el menú lateral ve a **Análisis -> Reportes con IA (Voz/Texto)** (`http://localhost:4201/admin/reportes-ia`).
+3. **Paso 3 (Consulta por Texto o Sugerencia Rápida):**
+   * Pulsa cualquiera de los chips de sugerencia rápida (ej: *"🏢 Ventas por sucursal"* o *"⭐ Top 10 prendas más vendidas"*), o escribe tu propia consulta en el input (ej. *"Ventas de este mes por sucursal"*).
+   * Pulsa **`✨ Generar Reporte`**.
+   * Verás la animación de carga mientras el backend consolida los datos de la empresa y orquesta con el modelo.
+4. **Paso 4 (Evaluación del Resultado Generado):**
+   * **Síntesis Ejecutiva (IA):** Aparece un bloque verde con la interpretación ejecutiva en lenguaje de negocio redactada por el modelo.
+   * **Visualización Dinámica:** Aparecen las barras interactivas con valores en Bs.
+   * **Tabla de Datos:** Tabla detallada con los totales facturados.
+5. **Paso 5 (Dictado por Voz con Micrófono):**
+   * Pulsa el botón **`🎙️ Dictar por voz`** (el navegador te pedirá permiso de micrófono la primera vez).
+   * Di en voz alta: *"Ventas por sucursal"* o *"Reporte de inventario"*.
+   * Verás cómo el botón pulsa en rojo con la leyenda `🛑 Escuchando...` y transcribe automáticamente tus palabras al campo de texto mediante la **Web Speech API**, disparando el reporte al terminar.
+6. **Paso 6 (Exportación Dinámica):**
+   * Pulsa **`📊 Descargar Excel (.xlsx)`**: Descarga inmediatamente un archivo Excel con formato contable, bordes corporativos, cabeceras en negrita y fórmulas de totales generado con `openpyxl`.
+   * Pulsa **`📄 Descargar PDF`**: Descarga un documento formal con la síntesis narrativa y la tabla paginada generado con `reportlab`.
+
+---
+
+#### 2. Prueba del Bloqueo Comercial para Plan Básico (Flujo Alternativo 5a de CU-19)
+
+**Objetivo:** Demostrar la regla de negocio SaaS: las empresas del Plan Básico no tienen acceso a la IA generativa hasta que contratan el Plan Profesional.
+
+1. **Paso 1:** Cierra sesión y entra con el administrador de **Boutique Luna** (chip rápido `admin (Boutique Luna)`: `admin@luna.com` / `Luna123!`).
+2. **Paso 2:** Ve a **Análisis -> Reportes con IA (Voz/Texto)** (`/admin/reportes-ia`).
+3. **Paso 3:** Escribe cualquier consulta (ej. *"Ventas"* y dale a "Generar Reporte").
+4. **Paso 4:** El backend rechaza la petición con **HTTP 403 Forbidden** y en pantalla aparece la tarjeta de bloqueo:  
+   `🔒 Función Exclusiva del Plan Profesional — Tu empresa está suscrita al Plan Básico. Actualiza a Plan Profesional para habilitar consultas en lenguaje natural...`
+5. **Paso 5:** El botón **"Ver y Mejorar Mi Plan"** te redirige directamente a la pantalla de suscripción (`/admin/suscripcion`) para realizar el upgrade (CU-05).
+
+---
+
+#### 3. Prueba de CU-20 y CU-21: Dashboard Analítico y Pipeline de Machine Learning
+
+**Objetivo:** Demostrar la predicción de demanda con **Random Forest Regressor** ($R^2 > 0.85$), la segmentación de clientes con **K-Means ($k=3$)** y las alertas preventivas de desabastecimiento de stock.
+
+1. **Paso 1:** Inicia sesión como administrador de GangaClothes (`admin@gangaclothes.com`).
+2. **Paso 2:** En el menú lateral entra a **Análisis -> Inteligencia Predictiva (ML)** (`http://localhost:4201/admin/dashboard-ml`).
+3. **Paso 3 (Inspección de Métricas Algorítmicas):**
+   * Observa la tarjeta de **Precisión de Demanda (R²)**: Muestra el porcentaje de bondad de ajuste del modelo supervisado (ej. `88.5%`), junto con el error medio cuadrático (RMSE) y error absoluto (MAE).
+   * Observa la tarjeta de **Cohesión de Clusters (Silhouette Score)**: Muestra la calidad de separación del agrupamiento K-Means.
+   * Observa el contador de muestras analizadas y la fecha del último entrenamiento.
+4. **Paso 4 (Proyección de Demanda a 4 Semanas):**
+   * En los selectores cambia entre **Sucursal** (*Sucursal Central*, *Norte*, *Cochabamba*) y **Categoría** (*Poleras*, *Pantalones*, *Chamarras*).
+   * Observa el gráfico SVG:
+     * La **línea sólida oscura** representa las últimas 8 semanas de ventas reales históricas.
+     * La **línea punteada esmeralda** representa las próximas 4 semanas proyectadas por el Random Forest con sus valores numéricos exactos en unidades.
+     * En la parte superior verás el banner con la inferencia de tendencia calculada (ej. `📈 Inferencia: Tendencia Positiva (+14.5%)`).
+5. **Paso 5 (Segmentación de Clientes con K-Means):**
+   * En la sección inferior se observan los 3 clusters de clientes:
+     * 👑 **Clientes VIP / Recurrentes:** Ticket promedio alto (Bs 400+) y alta frecuencia, con recomendación de fidelización y lanzamientos exclusivos.
+     * 🛍️ **Compradores Ocasionales:** Regularidad media, el grueso del volumen (60%), con recomendación de promociones 2x1.
+     * ⚠️ **Clientes en Riesgo de Abandono:** Clientes inactivos, con recomendación de cupones de reactivación.
+6. **Paso 6 (Alertas Predictivas de Quiebre de Inventario):**
+   * En la tabla final se listan las prendas/variantes cuyo stock físico actual no alcanzará para cubrir la demanda estimada de los próximos 15 días.
+   * Se destacan los badges **`CRITICO`** ($\le 4$ días de cobertura) y **`ALTO`**, con la acción recomendada de emitir orden de compra inmediata al proveedor.
+7. **Paso 7 (Reentrenamiento en Vivo - CU-20):**
+   * Pulsa el botón superior **`🔄 Reentrenar Pipeline ML (CU-20)`**.
+   * El backend reejecuta el preprocesamiento, entrena los algoritmos, actualiza los artefactos en disco (`joblib`) y verás la notificación toast verde confirmando el nuevo $R^2$.
+
