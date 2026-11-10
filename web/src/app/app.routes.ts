@@ -229,6 +229,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/sincronizacion/bandeja-pendientes').then((m) => m.BandejaPendientesComponent),
       },
+      {
+        path: 'devoluciones',
+        canActivate: [rolGuard],
+        data: { roles: ['administrador', 'encargado', 'cajero'] },
+        loadComponent: () =>
+          import('./features/admin/devoluciones/devoluciones').then((m) => m.DevolucionesComponent),
+      },
     ],
   },
   {

@@ -3,11 +3,12 @@
 El carrito se valida por identidad: el cliente sale del token. La venta en caja
 y el listado van por permiso. Ninguna ruta de este modulo descuenta inventario.
 """
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, Query, Request, Response
+from sqlalchemy.orm import Session
 
 from app.core.auditoria import registrar
 from app.core.deps import get_current_user, get_db, permisos_de, require_permiso
-from app.modules.ventas import comprobante_pdf as comprobante_pdf_mod, service
+from app.modules.ventas import comprobante_pdf as comprobante_pdf_mod, devoluciones, service
 from app.modules.ventas.schemas import CarritoIn, ItemIn, ItemUpd, VentaPresencialIn
 
 router = APIRouter()
@@ -102,3 +103,33 @@ def comprobante_pdf(id: int, peticion: Request, descargar: bool = False,
                       f"{'descargado' if descargar else 'abierto para imprimir'} en PDF")
     return Response(content=pdf, media_type="application/pdf",
                     headers={"Content-Disposition": f'{disposicion}; filename="{nombre}"'})
+
+
+# ------------------------------------------------------ CU-23: Devoluciones y Postventa
+@router.get("/devoluciones/buscar", summary="CU-23: Buscar venta y validar plazo de 30 días para devolución")
+def buscar_para_devolucion(
+    comprobante: str = Query(..., description="Número de comprobante o ID"),
+    usuario=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return devoluciones.buscar_venta_para_devolucion(db, comprobante, usuario)
+
+
+@router.post("/devoluciones", summary="CU-23: Procesar devolución, reingresar stock y emitir comprobante")
+def procesar_devolucion(
+    datos: devoluciones.DevolucionIn,
+    peticion: Request,
+    usuario=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return devoluciones.procesar_devolucion(db, usuario, datos, peticion=peticion)
+
+
+@router.get("/devoluciones", summary="CU-23: Listar historial de devoluciones procesadas")
+def listar_devoluciones(
+    sucursal_id: int | None = None,
+    usuario=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return devoluciones.listar_devoluciones(db, sucursal_id, usuario)
+

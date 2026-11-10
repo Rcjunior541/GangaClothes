@@ -92,3 +92,30 @@ class PromocionPrenda(Base):
     id = Column(Integer, primary_key=True)
     promocion_id = Column(Integer, ForeignKey("promocion.id"), nullable=False)
     prenda_id = Column(Integer, ForeignKey("prenda.id"), nullable=False)
+
+
+class Devolucion(Base):
+    """CU-23: Registro formal de devolución de prendas en sucursal (postventa)."""
+    __tablename__ = "devolucion"
+
+    id = Column(Integer, primary_key=True)
+    venta_id = Column(Integer, ForeignKey("venta.id"), nullable=False, index=True)
+    sucursal_id = Column(Integer, ForeignKey("sucursal.id"), nullable=False)
+    cajero_id = Column(Integer, ForeignKey("usuario.id"), nullable=False)
+    fecha = Column(DateTime, server_default=func.now())
+    motivo = Column(String(200), nullable=False)
+    total_devuelto = Column(Numeric(12, 2), nullable=False, default=0)
+    metodo_reembolso = Column(String(20), default="efectivo")  # efectivo | nota_credito
+    nro_comprobante = Column(String(30), unique=True, index=True)
+
+
+class DetalleDevolucion(Base):
+    __tablename__ = "detalle_devolucion"
+
+    id = Column(Integer, primary_key=True)
+    devolucion_id = Column(Integer, ForeignKey("devolucion.id"), nullable=False, index=True)
+    variante_id = Column(Integer, ForeignKey("variante.id"), nullable=False)
+    cantidad = Column(Integer, nullable=False, default=1)
+    precio_unitario = Column(Numeric(10, 2), nullable=False)
+    subtotal = Column(Numeric(12, 2), nullable=False)
+

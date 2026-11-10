@@ -11,7 +11,8 @@ from app.models.inventario import (Inventario, MovimientoInventario,        # no
                                    Proveedor, Compra, DetalleCompra,
                                    ProductoProveedor, ProductoProveedorTemporada)
 from app.models.ventas import (Reserva, DetalleReserva, Venta, DetalleVenta,  # noqa
-                               Pago, Promocion, PromocionPrenda)
+                               Pago, Promocion, PromocionPrenda,
+                               Devolucion, DetalleDevolucion)
 from app.models.envios import Envio                                        # noqa
 from app.models.ia import (Conversacion, EventoNavegacion,                  # noqa
                            MensajeChat, Recomendacion)
