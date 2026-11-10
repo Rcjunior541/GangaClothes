@@ -1,8 +1,15 @@
 <div class="panel">
-  <aside class="lateral">
+  @if (sidebarAbierto()) {
+    <div class="backdrop" (click)="cerrarSidebar()"></div>
+  }
+
+  <aside class="lateral" [class.abierto]="sidebarAbierto()">
     <div class="cabecera">
-      <div class="logo">Ganga<b>Clothes</b></div>
-      <div class="ceja">{{ subtitulo() }}</div>
+      <div>
+        <div class="logo">Ganga<b>Clothes</b></div>
+        <div class="ceja">{{ subtitulo() }}</div>
+      </div>
+      <button type="button" class="btn-cerrar-lateral" (click)="cerrarSidebar()" aria-label="Cerrar menú">✕</button>
     </div>
 
     <nav>
@@ -15,6 +22,7 @@
                 [routerLink]="item.ruta"
                 routerLinkActive="on"
                 [routerLinkActiveOptions]="{ exact: item.ruta === '/admin' || item.ruta === '/proveedor' }"
+                (click)="cerrarSidebar()"
                 >{{ item.etiqueta }}</a
               >
             } @else {
@@ -28,13 +36,21 @@
 
   <div class="contenido">
     <header class="superior">
-      <div class="yo">
-        <b>{{ sesion.nombreCompleto() }}</b> · {{ sesion.rolPrincipal() }}
-        @if (sesion.nombreEmpresa()) {
-          · <span class="badge-empresa" style="background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.8rem;">{{ sesion.nombreEmpresa() }}</span>
-        }
+      <div class="superior-izq">
+        <button type="button" class="btn-hamburguesa" (click)="toggleSidebar()" aria-label="Abrir menú">
+          ☰
+        </button>
       </div>
-      <button type="button" class="btn linea salir" (click)="salir()">Cerrar sesion</button>
+
+      <div class="superior-der">
+        <div class="yo">
+          <b>{{ sesion.nombreCompleto() }}</b> · {{ sesion.rolPrincipal() }}
+          @if (sesion.nombreEmpresa()) {
+            · <span class="badge-empresa" style="background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.8rem;">{{ sesion.nombreEmpresa() }}</span>
+          }
+        </div>
+        <button type="button" class="btn linea salir" (click)="salir()">Cerrar sesion</button>
+      </div>
     </header>
 
     <main>

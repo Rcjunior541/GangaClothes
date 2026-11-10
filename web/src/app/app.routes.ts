@@ -23,10 +23,10 @@ const OPERACION_SUCURSAL = { roles: ['administrador', 'encargado'] };
  * Los 7 catalogos comparten el componente `Crud`: lo unico que cambia es el
  * `config`, que llega como input gracias a `withComponentInputBinding()`.
  */
-function rutaCrud(camino: string, config: ConfigCrud, acceso: { roles: string[] } = SOLO_ADMIN) {
+function rutaCrud(camino: string, config: ConfigCrud, acceso: { roles: string[]; permiso?: string } = SOLO_ADMIN) {
   return {
     path: camino,
-    canActivate: [rolGuard],
+    canActivate: [rolGuard, permisoGuard],
     data: { ...acceso, config },
     loadComponent: () => import('./shared/crud/crud').then((m) => m.Crud),
   };
@@ -146,54 +146,54 @@ export const routes: Routes = [
       },
       {
         path: 'usuarios',
-        canActivate: [rolGuard],
-        data: SOLO_ADMIN,
+        canActivate: [rolGuard, permisoGuard],
+        data: { ...SOLO_ADMIN, permiso: 'usuarios:ver' },
         loadComponent: () => import('./features/admin/usuarios/usuarios').then((m) => m.Usuarios),
       },
       {
         path: 'roles',
-        canActivate: [rolGuard],
-        data: SOLO_ADMIN,
+        canActivate: [rolGuard, permisoGuard],
+        data: { ...SOLO_ADMIN, permiso: 'roles:ver' },
         loadComponent: () => import('./features/admin/roles/roles').then((m) => m.Roles),
       },
       {
         path: 'bitacora',
-        canActivate: [rolGuard],
-        data: SOLO_ADMIN,
+        canActivate: [rolGuard, permisoGuard],
+        data: { ...SOLO_ADMIN, permiso: 'bitacora:ver' },
         loadComponent: () => import('./features/admin/bitacora/bitacora').then((m) => m.Bitacora),
       },
-      rutaCrud('categorias', CATEGORIAS),
-      rutaCrud('tallas', TALLAS),
-      rutaCrud('colores', COLORES),
-      rutaCrud('temporadas', TEMPORADAS),
-      rutaCrud('colecciones', COLECCIONES),
-      rutaCrud('ciudades', CIUDADES),
-      rutaCrud('sucursales', SUCURSALES),
+      rutaCrud('categorias', CATEGORIAS, { ...SOLO_ADMIN, permiso: 'catalogos:ver' }),
+      rutaCrud('tallas', TALLAS, { ...SOLO_ADMIN, permiso: 'catalogos:ver' }),
+      rutaCrud('colores', COLORES, { ...SOLO_ADMIN, permiso: 'catalogos:ver' }),
+      rutaCrud('temporadas', TEMPORADAS, { ...SOLO_ADMIN, permiso: 'catalogos:ver' }),
+      rutaCrud('colecciones', COLECCIONES, { ...SOLO_ADMIN, permiso: 'catalogos:ver' }),
+      rutaCrud('ciudades', CIUDADES, { ...SOLO_ADMIN, permiso: 'sucursales:ver' }),
+      rutaCrud('sucursales', SUCURSALES, { ...SOLO_ADMIN, permiso: 'sucursales:ver' }),
       {
         path: 'prendas',
-        canActivate: [rolGuard],
-        data: SOLO_ADMIN,
+        canActivate: [rolGuard, permisoGuard],
+        data: { ...SOLO_ADMIN, permiso: 'prendas:ver' },
         loadComponent: () => import('./features/admin/prendas/prendas').then((m) => m.Prendas),
       },
       {
         path: 'inventario',
-        canActivate: [rolGuard],
-        data: OPERACION_SUCURSAL,
+        canActivate: [rolGuard, permisoGuard],
+        data: { ...OPERACION_SUCURSAL, permiso: 'inventario:ver' },
         loadComponent: () => import('./features/inventario/inventario/inventario').then((m) => m.Inventario),
       },
       {
         path: 'movimientos',
-        canActivate: [rolGuard],
-        data: OPERACION_SUCURSAL,
+        canActivate: [rolGuard, permisoGuard],
+        data: { ...OPERACION_SUCURSAL, permiso: 'inventario:ver' },
         loadComponent: () => import('./features/inventario/movimientos/movimientos').then((m) => m.Movimientos),
       },
       {
         path: 'compras',
-        canActivate: [rolGuard],
-        data: OPERACION_SUCURSAL,
+        canActivate: [rolGuard, permisoGuard],
+        data: { ...OPERACION_SUCURSAL, permiso: 'inventario:ver' },
         loadComponent: () => import('./features/inventario/compras/compras').then((m) => m.Compras),
       },
-      rutaCrud('proveedores', PROVEEDORES, OPERACION_SUCURSAL),
+      rutaCrud('proveedores', PROVEEDORES, { ...OPERACION_SUCURSAL, permiso: 'inventario:ver' }),
       {
         // CU9/CU10: a que prenda del catalogo corresponde cada producto que ofrecen los proveedores.
         path: 'oferta-proveedores',
@@ -204,8 +204,8 @@ export const routes: Routes = [
       },
       {
         path: 'reservas',
-        canActivate: [rolGuard],
-        data: OPERACION_SUCURSAL,
+        canActivate: [rolGuard, permisoGuard],
+        data: { ...OPERACION_SUCURSAL, permiso: 'reservas:ver' },
         loadComponent: () =>
           import('./features/reservas/sucursal/reservas-sucursal').then((m) => m.ReservasSucursal),
       },
@@ -218,8 +218,8 @@ export const routes: Routes = [
       },
       {
         path: 'caja',
-        canActivate: [rolGuard],
-        data: { roles: ['administrador', 'cajero'] },
+        canActivate: [rolGuard, permisoGuard],
+        data: { roles: ['administrador', 'cajero'], permiso: 'ventas:ver' },
         loadComponent: () => import('./features/caja/caja').then((m) => m.Caja),
       },
       {
@@ -231,8 +231,8 @@ export const routes: Routes = [
       },
       {
         path: 'devoluciones',
-        canActivate: [rolGuard],
-        data: { roles: ['administrador', 'encargado', 'cajero'] },
+        canActivate: [rolGuard, permisoGuard],
+        data: { roles: ['administrador', 'encargado', 'cajero'], permiso: 'ventas:ver' },
         loadComponent: () =>
           import('./features/admin/devoluciones/devoluciones').then((m) => m.DevolucionesComponent),
       },

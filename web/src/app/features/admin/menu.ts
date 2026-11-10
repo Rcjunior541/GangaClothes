@@ -61,42 +61,42 @@ export const MENU: GrupoMenu[] = [
   {
     titulo: 'Seguridad',
     items: [
-      { etiqueta: 'Usuarios', ruta: '/admin/usuarios', roles: ADMIN, disponible: true },
-      { etiqueta: 'Roles y permisos', ruta: '/admin/roles', roles: ADMIN, disponible: true },
-      { etiqueta: 'Bitacora', ruta: '/admin/bitacora', roles: ADMIN, disponible: true },
+      { etiqueta: 'Usuarios', ruta: '/admin/usuarios', roles: ADMIN, permiso: 'usuarios:ver', disponible: true },
+      { etiqueta: 'Roles y permisos', ruta: '/admin/roles', roles: ADMIN, permiso: 'roles:ver', disponible: true },
+      { etiqueta: 'Bitacora', ruta: '/admin/bitacora', roles: ADMIN, permiso: 'bitacora:ver', disponible: true },
     ],
   },
   {
     titulo: 'Catalogos base',
     items: [
-      { etiqueta: 'Categorias', ruta: '/admin/categorias', roles: ADMIN, disponible: true },
-      { etiqueta: 'Tallas', ruta: '/admin/tallas', roles: ADMIN, disponible: true },
-      { etiqueta: 'Colores', ruta: '/admin/colores', roles: ADMIN, disponible: true },
-      { etiqueta: 'Temporadas', ruta: '/admin/temporadas', roles: ADMIN, disponible: true },
-      { etiqueta: 'Colecciones', ruta: '/admin/colecciones', roles: ADMIN, disponible: true },
+      { etiqueta: 'Categorias', ruta: '/admin/categorias', roles: ADMIN, permiso: 'catalogos:ver', disponible: true },
+      { etiqueta: 'Tallas', ruta: '/admin/tallas', roles: ADMIN, permiso: 'catalogos:ver', disponible: true },
+      { etiqueta: 'Colores', ruta: '/admin/colores', roles: ADMIN, permiso: 'catalogos:ver', disponible: true },
+      { etiqueta: 'Temporadas', ruta: '/admin/temporadas', roles: ADMIN, permiso: 'catalogos:ver', disponible: true },
+      { etiqueta: 'Colecciones', ruta: '/admin/colecciones', roles: ADMIN, permiso: 'catalogos:ver', disponible: true },
     ],
   },
   {
     titulo: 'Red de tiendas',
     items: [
-      { etiqueta: 'Ciudades', ruta: '/admin/ciudades', roles: ADMIN, disponible: true },
-      { etiqueta: 'Sucursales', ruta: '/admin/sucursales', roles: ADMIN, disponible: true },
+      { etiqueta: 'Ciudades', ruta: '/admin/ciudades', roles: ADMIN, permiso: 'sucursales:ver', disponible: true },
+      { etiqueta: 'Sucursales', ruta: '/admin/sucursales', roles: ADMIN, permiso: 'sucursales:ver', disponible: true },
     ],
   },
   {
     titulo: 'Productos',
     items: [
-      { etiqueta: 'Prendas y variantes', ruta: '/admin/prendas', roles: ADMIN, disponible: true },
+      { etiqueta: 'Prendas y variantes', ruta: '/admin/prendas', roles: ADMIN, permiso: 'prendas:ver', disponible: true },
       { etiqueta: 'Promociones', ruta: '/admin/promociones', roles: ADMIN, permiso: 'promociones:ver', disponible: true },
     ],
   },
   {
     titulo: 'Operacion',
     items: [
-      { etiqueta: 'Inventario', ruta: '/admin/inventario', roles: ['administrador', 'encargado'], disponible: true },
-      { etiqueta: 'Movimientos', ruta: '/admin/movimientos', roles: ['administrador', 'encargado'], disponible: true },
-      { etiqueta: 'Compras', ruta: '/admin/compras', roles: ['administrador', 'encargado'], disponible: true },
-      { etiqueta: 'Proveedores', ruta: '/admin/proveedores', roles: ['administrador', 'encargado'], disponible: true },
+      { etiqueta: 'Inventario', ruta: '/admin/inventario', roles: ['administrador', 'encargado'], permiso: 'inventario:ver', disponible: true },
+      { etiqueta: 'Movimientos', ruta: '/admin/movimientos', roles: ['administrador', 'encargado'], permiso: 'inventario:ver', disponible: true },
+      { etiqueta: 'Compras', ruta: '/admin/compras', roles: ['administrador', 'encargado'], permiso: 'inventario:ver', disponible: true },
+      { etiqueta: 'Proveedores', ruta: '/admin/proveedores', roles: ['administrador', 'encargado'], permiso: 'inventario:ver', disponible: true },
       {
         etiqueta: 'Oferta de proveedores',
         ruta: '/admin/oferta-proveedores',
@@ -104,7 +104,7 @@ export const MENU: GrupoMenu[] = [
         permiso: 'inventario:crear',
         disponible: true,
       },
-      { etiqueta: 'Reservas', ruta: '/admin/reservas', roles: ['administrador', 'encargado'], disponible: true },
+      { etiqueta: 'Reservas', ruta: '/admin/reservas', roles: ['administrador', 'encargado'], permiso: 'reservas:ver', disponible: true },
       {
         etiqueta: 'Envios a domicilio',
         ruta: '/admin/envios',
@@ -112,11 +112,12 @@ export const MENU: GrupoMenu[] = [
         permiso: 'envios:ver',
         disponible: true,
       },
-      { etiqueta: 'Caja', ruta: '/admin/caja', roles: ['administrador', 'cajero'], disponible: true },
+      { etiqueta: 'Caja', ruta: '/admin/caja', roles: ['administrador', 'cajero'], permiso: 'ventas:ver', disponible: true },
       {
         etiqueta: 'Devoluciones (Postventa)',
         ruta: '/admin/devoluciones',
         roles: ['administrador', 'encargado', 'cajero'],
+        permiso: 'ventas:ver',
         disponible: true,
       },
       {
