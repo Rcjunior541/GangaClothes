@@ -18,3 +18,14 @@ class EventoIn(BaseModel):
     prenda_id: int
     tipo_evento: str = Field(default="vista", pattern="^(vista|busqueda|carrito|probador_ar)$")
     origen: str | None = Field(default=None, pattern="^(web|movil)$")
+
+
+class ReporteGenerativoIn(BaseModel):
+    """CU-19: Consulta en lenguaje natural (texto o voz) para reporte con IA."""
+    prompt: str = Field(min_length=2, max_length=1000)
+
+
+class ReporteExportarIn(BaseModel):
+    """Payload del reporte a exportar a Excel o PDF."""
+    reporte: dict
+

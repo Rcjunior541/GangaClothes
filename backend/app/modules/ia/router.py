@@ -18,8 +18,8 @@ from app.core.auditoria import registrar
 from app.core.deps import get_current_user, get_db, permisos_de
 from app.models.catalogo import Prenda
 from app.models.ia import EventoNavegacion
-from app.modules.ia import recomendador, service
-from app.modules.ia.schemas import ChatIn, EventoIn
+from app.modules.ia import recomendador, reportes_generativos, service
+from app.modules.ia.schemas import ChatIn, EventoIn, ReporteExportarIn, ReporteGenerativoIn
 from app.modules.ventas import service as ventas
 
 router = APIRouter()
@@ -92,3 +92,44 @@ def borrar(id: int, peticion: Request, db=Depends(get_db), usuario=Depends(get_c
               entidad="conversacion", entidad_id=id,
               detalle=f"Se vacio la conversacion #{id} con el asistente")
     return resultado
+
+
+# ------------------------------------------------------------- CU-19: Reportes Generativos con IA
+@router.post(
+    "/reportes-generativos",
+    summary="CU-19: Solicitar reporte inteligente con IA mediante texto o voz (Exclusivo Plan Profesional)",
+)
+def solicitar_reporte_generativo(
+    datos: ReporteGenerativoIn,
+    peticion: Request,
+    usuario=Depends(get_current_user),
+    db=Depends(get_db),
+):
+    rep = reportes_generativos.generar_reporte_ia(db, usuario, datos.prompt)
+    registrar(
+        db,
+        modulo="REPORTES_IA",
+        accion="GENERAR",
+        usuario=usuario,
+        peticion=peticion,
+        entidad="reporte",
+        detalle=f"Reporte IA generado para: '{datos.prompt[:60]}'",
+    )
+    return rep
+
+
+@router.post(
+    "/reportes-generativos/exportar-excel",
+    summary="CU-19: Exportar reporte generado a hoja de cálculo Excel (.xlsx)",
+)
+def exportar_excel(datos: ReporteExportarIn):
+    return reportes_generativos.exportar_reporte_excel(datos.reporte)
+
+
+@router.post(
+    "/reportes-generativos/exportar-pdf",
+    summary="CU-19: Exportar reporte generado a documento formal PDF",
+)
+def exportar_pdf(datos: ReporteExportarIn):
+    return reportes_generativos.exportar_reporte_pdf(datos.reporte)
+

@@ -42,6 +42,20 @@ export const MENU: GrupoMenu[] = [
         permiso: 'reportes:ver',
         disponible: true,
       },
+      {
+        etiqueta: 'Inteligencia Predictiva (ML)',
+        ruta: '/admin/dashboard-ml',
+        roles: ['administrador', 'encargado'],
+        permiso: 'reportes:ver',
+        disponible: true,
+      },
+      {
+        etiqueta: 'Reportes con IA (Voz/Texto)',
+        ruta: '/admin/reportes-ia',
+        roles: ['administrador', 'encargado'],
+        permiso: 'reportes:ver',
+        disponible: true,
+      },
     ],
   },
   {

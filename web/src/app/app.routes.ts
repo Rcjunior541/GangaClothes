@@ -119,10 +119,24 @@ export const routes: Routes = [
         loadComponent: () => import('./features/reportes/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
+        path: 'dashboard-ml',
+        canActivate: [rolGuard, permisoGuard],
+        data: { ...OPERACION_SUCURSAL, permiso: 'reportes:ver' },
+        loadComponent: () =>
+          import('./features/reportes/dashboard-ml/dashboard-ml').then((m) => m.DashboardMLComponent),
+      },
+      {
         path: 'reportes',
         canActivate: [rolGuard, permisoGuard],
         data: { ...OPERACION_SUCURSAL, permiso: 'reportes:ver' },
         loadComponent: () => import('./features/reportes/reportes/reportes').then((m) => m.Reportes),
+      },
+      {
+        path: 'reportes-ia',
+        canActivate: [rolGuard, permisoGuard],
+        data: { ...OPERACION_SUCURSAL, permiso: 'reportes:ver' },
+        loadComponent: () =>
+          import('./features/reportes/generativo/reporte-generativo').then((m) => m.ReporteGenerativoComponent),
       },
       {
         path: 'promociones',
