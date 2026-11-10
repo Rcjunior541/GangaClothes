@@ -40,8 +40,9 @@ jobs:
       - name: Build Angular
         run: npx ng build --base-href /GangaClothes/
 
-      - name: Fix SPA 404 Routing  
-        run: cp dist/gangaclothes/browser/index.html dist/gangaclothes/browser/404.html || cp dist/gangaclothes/index.html dist/gangaclothes/404.html
+      - name: Fix SPA 404 Routing
+        run: |
+          find dist -name "index.html" -execdir cp index.html 404.html \;
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -49,8 +50,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: web/dist/gangaclothes/browser
-
+          path: web/dist
+          
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
