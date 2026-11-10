@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.auditoria import registrar
-from app.core.deps import get_current_user, get_db, require_permiso
+from app.core.deps import get_current_user, get_current_user_opcional, get_db, require_permiso
 from app.modules.sucursales import service
 from app.modules.sucursales.schemas import LimiteSucursalesOut, SucursalIn, SucursalOut, SucursalUpd
 
@@ -27,9 +27,9 @@ def consultar_limite_sucursales(usuario=Depends(puede_crear), db: Session = Depe
 @router.get(
     "",
     response_model=list[SucursalOut],
-    summary="Listar sucursales de la empresa (o todas si es Superadmin)",
+    summary="Listar sucursales de la empresa (o todas si es Superadmin o visitante público)",
 )
-def listar_sucursales(usuario=Depends(get_current_user), db: Session = Depends(get_db)):
+def listar_sucursales(usuario=Depends(get_current_user_opcional), db: Session = Depends(get_db)):
     return service.listar_sucursales(db)
 
 
@@ -38,7 +38,7 @@ def listar_sucursales(usuario=Depends(get_current_user), db: Session = Depends(g
     response_model=SucursalOut,
     summary="Consultar una sucursal específica",
 )
-def obtener_sucursal(id: int, usuario=Depends(get_current_user), db: Session = Depends(get_db)):
+def obtener_sucursal(id: int, usuario=Depends(get_current_user_opcional), db: Session = Depends(get_db)):
     return service.obtener_sucursal(db, id)
 
 

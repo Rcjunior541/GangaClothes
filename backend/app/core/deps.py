@@ -44,6 +44,34 @@ def get_current_user(
     return usuario
 
 
+def get_current_user_opcional(
+    cred: HTTPAuthorizationCredentials = Depends(bearer), db=Depends(get_db)
+):
+    from app.models.usuarios import Usuario
+
+    if cred is None:
+        return None
+    try:
+        payload = decode_token(cred.credentials)
+    except Exception:
+        return None
+    tenant_id = payload.get("tenant_id")
+    kind = payload.get("kind", "tenant")
+
+    if kind != "super" and tenant_id is not None:
+        db.info["tenant_scope"] = tenant_id
+    else:
+        db.info.pop("tenant_scope", None)
+
+    usuario = db.get(Usuario, int(payload["sub"]))
+    if usuario is None or not usuario.activo:
+        return None
+    usuario.roles_token = payload.get("roles", [])
+    usuario.tenant_id_token = tenant_id
+    usuario.kind_token = kind
+    return usuario
+
+
 def require_roles(*roles: str):
     """Uso: Depends(require_roles('administrador', 'encargado'))"""
 

@@ -160,3 +160,10 @@ def test_aislamiento_sucursales_entre_tenants(client, ciudad_cochabamba):
     assert res_beta.status_code == 200
     nombres_beta = [s["nombre"] for s in res_beta.json()]
     assert "Sucursal Exclusiva Alfa" not in nombres_beta
+
+
+def test_listar_sucursales_publico_sin_autenticacion(client, ciudad_cochabamba):
+    """El catálogo público debe poder consultar sucursales sin enviar token Bearer."""
+    res = client.get("/api/admin/sucursales")
+    assert res.status_code == 200
+    assert isinstance(res.json(), list)
