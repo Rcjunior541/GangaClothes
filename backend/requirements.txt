@@ -12,3 +12,11 @@ reportlab==4.4.4
 qrcode==8.2
 # Leer el certificado .pfx que pide el TLS mutuo del BCP
 cryptography==46.0.3
+
+# Machine Learning y Analítica Predictiva (Hito 3: CU20, CU21)
+scikit-learn>=1.4.0
+pandas>=2.2.0
+numpy>=1.26.0
+joblib>=1.3.0
+# Exportación de reportes a Excel (CU19)
+openpyxl>=3.1.2
