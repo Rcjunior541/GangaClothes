@@ -40,9 +40,18 @@ jobs:
       - name: Build Angular
         run: npx ng build --base-href /GangaClothes/
 
-      - name: Fix SPA 404 Routing
+      - name: Prepare Pages Artifact
         run: |
-          find dist -name "index.html" -execdir cp index.html 404.html \;
+          # Encuentra la carpeta que contiene el index.html generado por Angular
+          BUILD_DIR=$(dirname $(find dist -name "index.html" | head -n 1))
+          echo "Directorio detectado: $BUILD_DIR"
+          
+          # Crea el 404.html para rutas SPA
+          cp "$BUILD_DIR/index.html" "$BUILD_DIR/404.html"
+          
+          # Prepara una carpeta limpia para Pages
+          mkdir -p ../public_pages
+          cp -r "$BUILD_DIR"/* ../public_pages/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -50,7 +59,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: web/dist
+          path: public_pages
           
       - name: Deploy to GitHub Pages
         id: deployment
