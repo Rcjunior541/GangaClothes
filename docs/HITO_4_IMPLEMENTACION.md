@@ -116,3 +116,82 @@ El Hito 4 complementa el ecosistema de la plataforma incorporando dos requerimie
 * **Qué y dónde editar:**
   * Backend: Modelos `Devolucion` y `DetalleDevolucion` en `app/models/ventas.py`, módulo `app/modules/ventas/devoluciones.py`, router en `app/modules/ventas/router.py`.
   * Frontend: Componente de devoluciones en `src/app/features/admin/devoluciones/` y enlace en el menú lateral `src/app/features/admin/menu.ts`.
+
+---
+
+# 3. Guía de Pruebas Paso a Paso con Credenciales (Defensa Hito 4)
+
+A continuación se detalla la matriz de credenciales y el procedimiento exacto paso a paso para ejecutar y defender las operaciones de postventa (**CU-23**) y la exportación formal de reportes IA (**CU-22**) ante el tribunal evaluador.
+
+---
+
+### A. Tabla de Credenciales de Demostración para el Hito 4
+
+| Rol / Actor | Código de Empresa | Correo Electrónico | Contraseña | Propósito en el Hito 4 |
+| :--- | :--- | :--- | :--- | :--- |
+| **Cajero** | `gangaclothes` | `cajero@gangaclothes.com` | `Cajero123!` | Buscar venta, validar plazo de 30 días y procesar devolución (**CU-23**). |
+| **Encargado** | `gangaclothes` | `encargado@gangaclothes.com` | `Encargado123!` | Auditar reintegro a inventario físico, Kardex e historial de devoluciones (**CU-23**). |
+| **Administrador** | `gangaclothes` | `admin@gangaclothes.com` | `Admin123!` | Control gerencial y exportación formal de reportes IA a Excel y PDF (**CU-22**). |
+| **Superadmin** | *(dejar vacío)* | `superadmin@fashionstore.com` | `SuperAdmin123!` | Gestión global de la plataforma SaaS. |
+
+---
+
+### B. Pasos para Probar Cada Caso de Uso
+
+---
+
+#### 1. Prueba de CU-23: Registrar Devolución de Prendas en Sucursal (Postventa)
+
+**Objetivo:** Demostrar el flujo completo de postventa: validación de garantía comercial de 30 días, selección de prendas/motivo, reintegro automático al inventario físico de la sucursal, asiento en Kardex y emisión del comprobante `DEV-00001`.
+
+1. **Paso 1 (Ingreso al Módulo):**
+   * Inicia sesión como cajero (`cajero@gangaclothes.com` / `Cajero123!` con código `gangaclothes`) o como administrador.
+   * En el menú lateral dirígete a **Operación -> Devoluciones (Postventa)** (`http://localhost:4201/admin/devoluciones`).
+2. **Paso 2 (Búsqueda de Venta Original):**
+   * Introduce el número de comprobante de una venta pagada (ej. `C-000001`, `C-000002` o el ID `1`).
+   * Pulsa **`🔍 Buscar Venta`**.
+3. **Paso 3 (Validación de Garantía Comercial de 30 Días):**
+   * Si la venta fue realizada dentro de los últimos 30 días, observarás el banner verde:  
+     `🛡️ Garantía Vigente — Quedan X días de plazo (máximo 30 días permitidos)`.
+   * Si la venta tiene más de 30 días, el sistema bloquea la acción con banner rojo:  
+     `⚠️ Plazo Expirado — La compra excede el plazo máximo de 30 días permitidos según la política comercial`.
+4. **Paso 4 (Selección de Prendas y Motivo):**
+   * En la tabla de ítems adquiridos, marca la casilla de la prenda que el cliente entrega físicamente.
+   * Ajusta la cantidad a devolver (el sistema valida que no puedas ingresar más unidades de las compradas o disponibles).
+   * Escribe el motivo de la devolución (ej. *"Talla incorrecta, cliente solicita reembolso"*).
+   * Selecciona el método de reembolso (*Efectivo en Caja* o *Nota de Crédito*).
+   * Observa el cálculo dinámico del **Total a Reembolsar en Bs**.
+5. **Paso 5 (Confirmación y Emisión de Comprobante):**
+   * Pulsa el botón **`🔄 Confirmar Devolución (CU-23)`**.
+   * El sistema ejecuta la transacción atómica y despliega en pantalla el modal del comprobante formal:
+     * Número correlativo oficial: **`DEV-00001`**.
+     * Desglose de prendas reingresadas y dinero reembolsado.
+     * Leyenda de confirmación: `✓ Stock reintegrado automáticamente al inventario físico y asentado en Kardex`.
+     * Botón **`🖨️ Imprimir Comprobante`**.
+6. **Paso 6 (Verificación en Inventario y Kardex):**
+   * Ve a **Operación -> Inventario** (`/admin/inventario`) y confirma que el stock de la variante devuelta se incrementó en la cantidad recibida.
+   * Ve a **Operación -> Movimientos** (`/admin/movimientos`) y verifica el nuevo registro con tipo **`devolución`** y el motivo ingresado.
+7. **Paso 7 (Pestaña de Historial):**
+   * En la pantalla de devoluciones, pulsa la pestaña **"Historial de Devoluciones"** para consultar el registro contable de todas las devoluciones emitidas en la sucursal.
+
+---
+
+#### 2. Prueba de CU-22: Exportar Reportes Generativos a Excel (.xlsx) y PDF
+
+**Objetivo:** Demostrar la descarga al vuelo de los reportes generados con Inteligencia Artificial en formatos ofimáticos estándar para análisis contable o presentación ejecutiva.
+
+1. **Paso 1:** Inicia sesión como administrador (`admin@gangaclothes.com` / `Admin123!` con código `gangaclothes`).
+2. **Paso 2:** Ve a **Análisis -> Reportes con IA (Voz/Texto)** (`http://localhost:4201/admin/reportes-ia`).
+3. **Paso 3:** Genera cualquier reporte pulsando un chip rápido (ej. `🏢 Ventas por sucursal` o `⭐ Top 10 prendas más vendidas`) o dictando por voz.
+4. **Paso 4 (Exportación a Excel .xlsx):**
+   * Pulsa el botón **`📊 Descargar Excel (.xlsx)`**.
+   * Se descarga inmediatamente el archivo `reporte_ia_YYYY-MM-DD.xlsx`.
+   * Al abrirlo en Excel verás:
+     * Título formal y metadata de la consulta.
+     * Bloque con la **Síntesis Ejecutiva redactada por la IA** en celda combinada.
+     * Tabla con cabecera en contraste oscuro, bordes estilizados y celdas numéricas formateadas como moneda contable (`#,##0.00`).
+     * Columnas con ancho ajustado automáticamente.
+5. **Paso 5 (Exportación a PDF):**
+   * Pulsa el botón **`📄 Descargar PDF`**.
+   * Se descarga el archivo `reporte_ia_YYYY-MM-DD.pdf`.
+   * Al abrirlo verás el membrete corporativo, la fecha/hora de generación, la interpretación narrativa del modelo y la tabla paginada con estilos alternados (`RowBackgrounds`) generada con `reportlab`.
