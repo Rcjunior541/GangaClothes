@@ -22,10 +22,31 @@ CORS_ORIGINS=*
 GEMINI_API_KEY=tu_api_key_de_gemini_aqui
 GEMINI_MODELOS=gemini-2.5-flash,gemini-1.5-flash,gemini-flash-latest
 
-# --- Pasarela QR Banco BCP (Simulador Local) ---
-# 'simulado' permite pagar con QR localmente sin requerir certificado bancario .pfx
+# --- Pasarela QR Banco BCP (OpenBanking / Sandbox & Simulador) ---
+# Modos disponibles:
+#   BCP_MODO=simulado  -> El QR se genera localmente y se auto-cobra a los 8 segundos (ideal para demos)
+#   BCP_MODO=sandbox   -> Conecta a https://sandbox.openbanking.bcp.com.bo con TLS mutuo
+#   BCP_MODO=live      -> Producción BCP
 BCP_MODO=simulado
 BCP_SIMULADOR_SEGUNDOS=8
+BCP_QR_MINUTOS=15
+
+# Credenciales de API BCP (Requeridas para modo sandbox):
+BCP_USUARIO=
+BCP_PASSWORD=
+BCP_APP_USER_ID=
+BCP_PUBLIC_TOKEN=
+BCP_BUSINESS_CODE=0366
+BCP_SERVICE_CODE=050
+
+# Certificados de cliente para TLS Mutuo (Ubicados en la carpeta /certificados):
+# Opción 1: Par PEM (.crt y .key) - No requiere contraseña:
+BCP_CERT_PEM=../certificados/bcp_cert.crt
+BCP_CERT_KEY=../certificados/bcp_key.key
+
+# Opción 2: Archivo PFX:
+BCP_CERT_PFX=../certificados/sandbox.openbanking.bcp.com.bo.pfx
+BCP_CERT_PASSWORD=
 
 # --- Pasarela Stripe (Opcional - Modo Sandbox) ---
 # https://dashboard.stripe.com/test/apikeys
