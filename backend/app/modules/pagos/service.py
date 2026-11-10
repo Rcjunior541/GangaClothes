@@ -79,8 +79,11 @@ def _referencia_local() -> str:
 
 def _siguiente_comprobante(db: Session) -> str:
     # Con numeros de ancho fijo el maximo alfabetico es tambien el numerico.
-    ultimo = db.query(func.max(Venta.nro_comprobante)).scalar()
-    numero = int(ultimo.split("-")[1]) + 1 if ultimo else 1
+    ultimo = db.query(func.max(Venta.nro_comprobante)).filter(Venta.nro_comprobante.like("C-%")).scalar()
+    try:
+        numero = int(ultimo.split("-")[1]) + 1 if ultimo else 1
+    except (IndexError, ValueError, AttributeError):
+        numero = db.query(Venta).count() + 1
     return f"C-{numero:06d}"
 
 

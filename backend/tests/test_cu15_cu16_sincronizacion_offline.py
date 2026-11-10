@@ -24,7 +24,18 @@ def test_sincronizacion_lote_flujo_completo():
     assert cat_res.status_code == 200
     prendas = cat_res.json()["prendas"]
     assert len(prendas) > 0
-    variante = prendas[0]["variantes"][0]
+    variante = None
+    for p in prendas:
+        for v in p["variantes"]:
+            for d in v.get("disponibilidad", []):
+                if d.get("sucursal_id") == 2 and d.get("disponible", 0) > 0:
+                    variante = v
+                    break
+            if variante:
+                break
+        if variante:
+            break
+    assert variante is not None, "Debe existir al menos una variante con stock disponible"
 
     # 3. Enviar lote de sincronización con un UUID único
     mi_uuid = str(uuid.uuid4())
